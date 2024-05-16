@@ -6,7 +6,7 @@
 			print "square must be between 1 and 64"
 			exit 1
 		}
-		print 2^($0-1)
+		print 2 ^ ($0 - 1)
 	}
 }
 
