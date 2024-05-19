@@ -12,7 +12,7 @@ END_INPUT
 }
 
 @test 'single score with multiple letters' {
-    [[ $BATS_RUN_SKIPPED == "true" ]] || skip
+    #[[ $BATS_RUN_SKIPPED == "true" ]] || skip
     run gawk -f etl.awk << END_INPUT
 1:  "A", "E", "I", "O", "U"
 END_INPUT
@@ -27,7 +27,7 @@ END_INPUT
 }
 
 @test 'a score with no letters' {
-    [[ $BATS_RUN_SKIPPED == "true" ]] || skip
+    #[[ $BATS_RUN_SKIPPED == "true" ]] || skip
     run gawk -f etl.awk << END_INPUT
 1: A
 7: 
@@ -38,7 +38,7 @@ END_INPUT
 }
 
 @test 'multiple scores with multiple letters' {
-    [[ $BATS_RUN_SKIPPED == "true" ]] || skip
+    #[[ $BATS_RUN_SKIPPED == "true" ]] || skip
     run gawk -f etl.awk << END_INPUT
 1:  "E", "A"
 2:"D","G"
@@ -53,7 +53,7 @@ END_INPUT
 }
 
 @test 'multiple scores with multiple letters, blank lines' {
-    [[ $BATS_RUN_SKIPPED == "true" ]] || skip
+    #[[ $BATS_RUN_SKIPPED == "true" ]] || skip
     run gawk -f etl.awk << END_INPUT
 
 2:"D","G"
@@ -70,7 +70,7 @@ END_INPUT
 }
 
 @test 'multiple scores with differing numbers of letters' {
-    [[ $BATS_RUN_SKIPPED == "true" ]] || skip
+    #[[ $BATS_RUN_SKIPPED == "true" ]] || skip
     
     # there are tab characters below
     run gawk -f etl.awk << END_INPUT
