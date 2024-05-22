@@ -12,22 +12,27 @@ BEGIN {
 }
 
 {
-	if (NF != 3) {
+	if (NF < 3) {
 		print("Not a color trio") > "/dev/stderr"
 		exit 1
 	}
-	value = color_codes[$1] color_codes[$2]
-	multiplier = 10 ^ color_codes[$3]
-	if (multiplier < 3) {
-		printf "%s ohms", value * multiplier
-	} else if (multiplier < 6) {
-		multiplier /= 1000
-		printf "%s kiloohms", value * multiplier
-	} else if (multiplier < 9) {
-		multiplier /= 1000000
-		printf "%s megaohms", value * multiplier
+	if ($1 in color_codes && $2 in color_codes && $3 in color_codes) {
+		digits = color_codes[$1] color_codes[$2]
+		value = digits * 10 ^ color_codes[$3]
+		if (value == 0) {
+			print "0 ohms"
+		} else if (value % 10 ^ 9 == 0) {
+			printf "%s gigaohms", value / 10 ^ 9
+		} else if (value % 10 ^ 6 == 0) {
+			printf "%s megaohms", value / 10 ^ 6
+		} else if (value % 10 ^ 3 == 0) {
+			printf "%s kiloohms", value / 10 ^ 3
+		} else {
+			printf "%s ohms", value
+		}
 	} else {
-		printf "%s gigaohms", value
+		print("Invalid color code") > "/dev/stderr"
+		exit 1
 	}
 }
 
