@@ -4,28 +4,37 @@ BEGIN {
 		discount = (i == 2) ? 0.95 : (i == 3) ? 0.9 : (i == 4) ? 0.85 : 0.75
 		price[i] = price[1] * i * discount
 	}
+	split("abcde", colors, "")
+	#############################################
+	# tmp variables/etc - clear after each use  #
+	#############################################
+	split("", _tmp, FS)
+	split("", _tmp2, FS)
 }
 
 {
-	books[$1]++
+	books[colors[$1]]++
 }
 
 END {
-	split("", complete_choice_array, FS)
-	number_books = length(books)
-	for (j = 1; j <= number_books; j++) {
-		split("", choices, FS)
-		choose(number_books, j)
-		for (choice in choices) {
-			complete_choice_array[choice]++
-		}
+	split("", possibilities, FS)
+	make_all_choices(possibilities, books)
+	for (idx in possibilities) {
+		print "Here:", idx, possibilities[idx]
 	}
-	for (k = 1; k <= 100; k++) {
-		if (k % 10 == 0) {
-			print "k:", k
-		}
-		for (complex_key in complete_choice_array) {
-			# print complex_key
+	print "Number of choices", length(choices)
+	exit 0
+	all_choices()
+	split("", solutions, FS)
+	for (key in possibilities) {
+		solutions[key]++
+	}
+	for (key in possibilities) {
+		printf "key: %s, value: %s\n", key, possibilities[key]
+	}
+	exit 0
+	for (k = 1; k <= 1000; k++) {
+		for (compounded in complete_choices) {
 			#########################################
 			# make copy of books - for manipulation #
 			#########################################
@@ -33,18 +42,18 @@ END {
 			for (book_no in books) {
 				books_copy[book_no] = books[book_no]
 			}
-			################################
-			# clear books out of book sets #
-			################################
+			#################################
+			# Clear books out of book sets  #
+			#################################
 			bail = 0
-			split(complex_key, tmp, FS)
+			split(compounded, tmp, FS)
 			for (idx1 in tmp) {
 				choice_group = tmp[idx1]
-				print "choice group:", choice_group
+				# print "choice group:", choice_group
 				split(choice_group, _tmp, SUBSEP)
 				for (idx2 in _tmp) {
 					book_no = _tmp[idx2]
-					printf "book_no %s, book_no in books_copy: %s\n", book_no, (book_no in books_copy)
+					# printf "book_no %s, book_no in books_copy: %s\n", book_no, (book_no in books_copy)
 					if (! (book_no in books_copy)) {
 						bail = 1
 						break
@@ -58,17 +67,17 @@ END {
 					break
 				}
 			}
-			delete complete_choice_array[complex_key]
+			delete complete_choices[compounded]
 			if (bail) {
-				print "skipping"
+				# print "skipping"
 				continue
 			}
 			###########################################
 			# if there are no books left, we are done #
 			###########################################
-			print complex_key
+			# print compounded
 			for (book_no in books_copy) {
-				print "book_copy:", book_no, books_copy[book_no]
+				# print "book_copy:", book_no, books_copy[book_no]
 			}
 			if (length(books_copy) == 0) {
 				break
@@ -76,152 +85,81 @@ END {
 			##################
 			# build up array #
 			##################
-			print "Adding new keys"
+			# print "Adding new keys"
+			split("", color_bag, FS)
+			for (book_col in books_copy) {
+				color_bag[book_col] = books_copy[book_col]
+			}
 			for (l = 1; l <= length(books_copy); l++) {
 				split("", choices, FS)
-				choose(length(books_copy), l)
+				make_choices_array(l)
 				for (choice in choices) {
-					complete_choice_array[complex_key FS choice]++
+					complete_choices[compounded FS choice]++
 				}
 			}
 		}
 	}
-	for (k in complete_choice_array) {
-		printf "choice %s, array value: %s\n", k, complete_choice_array[k]
+	for (k in complete_choices) {
+		printf "choice: %s, array value: %s\n", k, complete_choices[k]
 	}
 }
 
 
-function build_soln()
+function deduplicate_sort_str(input_str, _i, _c)
 {
-	if (length(soln_array) == 0) {
-		for (i = 1; i <= length(books); i++) {
-			split("", choices, FS)
-			choose(length(books), i)
-			for (key in choices) {
-				for (book_no in books) {
-					book_copy[book_no] = books[book_no]
-				}
-				split(key, tmp, SUBSEP)
-				for (idx in tmp) {
-					book_no = tmp[idx]
-					if (book_no in book_copy) {
-						book_copy[book_no]--
-						if (book_copy[book_no] == 0) {
-							delete book_copy[book_no]
-						}
-						soln_arkray[key] = book_copy
-					} else {
-						break
-					}
-				}
-			}
-		}
-		build_soln()
+	split(input_str, _tmp, "")
+	asort(_tmp)
+	_c = ""
+	for (_i = 1; _i <= length(_tmp); _i++) {
+		_c = (_tmp[_i] == substr(_c, length(_c), 1)) ? _c : _c _tmp[_i]
 	}
-	recurse = 0
-	for (group in soln_array) {
-		leftover_books = soln_array[group]
-		delete soln_array[group]
-		for (i = 1; i <= length(leftover_books); i++) {
-			split("", choices, FS)
-			choose(length(leftover_books), i)
-			for (key in choices) {
-				for (book_no in leftover_books) {
-					book_copy[book_no] = leftover_books[book_no]
-				}
-				split(key, tmp, SUBSEP)
-				for (idx in tmp) {
-					book_no = tmp[idx]
-					if (book_no in book_copy) {
-						book_copy[book_no]--
-						if (book_copy[book_no] == 0) {
-							delete book_copy[book_no]
-						}
-						soln_array[group FS key] = book_copy
-						recurse = 1
-					} else {
-						break
-					}
-				}
-			}
-		}
-	}
-	if (recurse == 1) {
-		print ++calls
-		build_soln()
-	}
+	split("", _tmp, FS)
+	return _c
 }
 
-function choose(n, r)
+function make_all_choices(result, color_bag, _i, _j)
 {
-	# COMPUTE CHOICES (WITH REPETITION) HERE
-	if (length(choices) == 0) {
-		for (i = 1; i <= n; i++) {
-			choices[i] = r - 1
+	for (_i = 1; _i <= length(color_bag); _i++) {
+		split("", _tmp2, FS)
+		make_choices_array(_tmp2, color_bag, _i)
+		for (_j in _tmp2) {
+			result[_j]++
 		}
 	}
-	recurse = 0
-	for (chosen in choices) {
-		choices_remaining = choices[chosen]
-		if (choices_remaining > 0) {
-			recurse = 1
-		}
-		for (i = 1; i <= n; i++) {
-			choices[chosen, i] = choices_remaining - 1
-			delete choices[chosen]
-		}
-	}
-	if (recurse == 1) {
-		return choose(n, r)
-	} else {
-		# DO DEDUPLICATION HERE
-		for (complex_key in choices) {
-			split(complex_key, _tmp, SUBSEP)
-			split("", __tmp, FS)
-			asort(_tmp)
-			# Deduplicating by setting of key of another a-array
-			for (idx in _tmp) {
-				__tmp[_tmp[idx]]++
-			}
-			newkey = 0
-			keylength = 0
-			for (idx in __tmp) {
-				keylength++
-				newkey = (newkey == 0) ? idx : newkey SUBSEP idx
-			}
-			value = choices[complex_key]
-			delete choices[complex_key]
-			if (keylength == r) {
-				choices[newkey] = value
-			}
-		}
-	}
+	split("", _tmp2, FS)
 }
 
-function determine_all_possibilities(number_books)
+function make_choices_array(result, color_bag, r, _color, _choice, _recurse)
 {
-	if (length(grouping_possibilities) == 0) {
-		limit = (number_books < 5) ? number_books : 5
-		for (i = 1; i <= limit; i++) {
-			grouping_possibilities[i] = number_books - i
-		}
-		return determine_all_possibilities(1)
-	}
-	recurse = 0
-	for (key in grouping_possibilities) {
-		value = grouping_possibilities[key]
-		if (value > 0) {
-			limit = (value < 5) ? value : 5
-			for (i = 1; i <= limit; i++) {
-				grouping_possibilities[key, i] = value - i
-				# gawk only - otherwise delete elsewhere
-				delete grouping_possibilities[key]
-			}
-			recurse = 1
+	if (length(result) == 0) {
+		for (_color in color_bag) {
+			result[_color] = r - 1
 		}
 	}
-	if (recurse) {
-		return determine_all_possibilities(1)
+	_recurse = 0
+	for (_choice in result) {
+		_value = result[_choice]
+		if (_value == 0) {
+			continue
+		}
+		delete result[_choice]
+		_recurse = 1
+		for (_color in color_bag) {
+			result[_choice _color] = _value - 1
+		}
+	}
+	if (_recurse == 1) {
+		return make_choices_array(result, color_bag, r)
+	}
+	#########################
+	# DO DEDUPLICATION HERE #
+	#########################
+	for (_choice in result) {
+		_value = result[_choice]
+		delete result[_choice]
+		_color = deduplicate_sort_str(_choice, _recurse)
+		if (length(_color) == r) {
+			result[_color] = _value
+		}
 	}
 }
