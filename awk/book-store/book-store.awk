@@ -1,7 +1,7 @@
 BEGIN {
 	price[1] = 800
 	for (i = 2; i <= 5; i++) {
-		discount = (i == 2) ? 0.95 : (i == 3) ? 0.9 : (i == 4) ? 0.85 : 0.75
+		discount = (i == 2) ? 0.95 : (i == 3) ? 0.9 : (i == 4) ? 0.80 : 0.75
 		price[i] = price[1] * i * discount
 	}
 	split("abcde", colors, "")
