@@ -21,11 +21,30 @@ END {
 	split("", _tmp2, FS)
 	split("", _basket_copy, FS)
 	split("", _add_set, FS)
+	##################
+	# The hard stuff #
+	##################
 	analyse_book_basket(book_set_combos, books, _all_possible_sets, _tmp, _tmp2, _basket_copy, _add_set)
+	##################
+	# The easy stuff #
+	##################
+	# Price the possible set combinations
 	for (book_combo in book_set_combos) {
-		print "Here:", book_combo, book_set_combos[book_combo]
+		set_price = 0
+		split(book_combo, _tmp, SUBSEP)
+		for (idx in _tmp) {
+			set_price += price[length(_tmp[idx])]
+		}
+		combo_prices[book_combo] = set_price
 	}
-	print "Number of results", length(book_set_combos)
+	# for (book_combo in combo_prices) {
+	# 	printf "Combo %s; Price: %d\n", book_combo, combo_prices[book_combo]
+	# }
+	cheapest = NR * 800
+	for (combo_price in combo_prices) {
+		cheapest = (combo_prices[combo_price] < cheapest) ? combo_prices[combo_price] : cheapest
+	}
+	print cheapest
 	exit 0
 }
 
