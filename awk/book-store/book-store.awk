@@ -17,93 +17,78 @@ BEGIN {
 }
 
 END {
-	split("", possibilities, FS)
-	make_all_choices(possibilities, books)
-	for (idx in possibilities) {
-		print "Here:", idx, possibilities[idx]
-	}
-	print "Number of choices", length(choices)
-	exit 0
-	all_choices()
-	split("", solutions, FS)
-	for (key in possibilities) {
-		solutions[key]++
-	}
-	for (key in possibilities) {
-		printf "key: %s, value: %s\n", key, possibilities[key]
-	}
-	exit 0
-	for (k = 1; k <= 1000; k++) {
-		for (compounded in complete_choices) {
-			#########################################
-			# make copy of books - for manipulation #
-			#########################################
+	split("", results, FS)
+	split("", all_sets, FS)
+	make_all_choices(all_sets, books)
+	calls = 0
+	recurse = 1
+	while (recurse) {
+		calls++
+		recurse = 0
+		for (chosen_set in all_sets) {
+			######################
+			# Make copy of books #
+			######################
 			split("", books_copy, FS)
-			for (book_no in books) {
-				books_copy[book_no] = books[book_no]
-			}
+			copy_array(books, books_copy)
 			#################################
-			# Clear books out of book sets  #
+			# Clear out chosen set of books #
 			#################################
-			bail = 0
-			split(compounded, tmp, FS)
-			for (idx1 in tmp) {
-				choice_group = tmp[idx1]
-				# print "choice group:", choice_group
-				split(choice_group, _tmp, SUBSEP)
-				for (idx2 in _tmp) {
-					book_no = _tmp[idx2]
-					# printf "book_no %s, book_no in books_copy: %s\n", book_no, (book_no in books_copy)
-					if (! (book_no in books_copy)) {
-						bail = 1
-						break
-					}
-					books_copy[book_no]--
-					if (books_copy[book_no] == 0) {
-						delete books_copy[book_no]
-					}
+			split(chosen_set, _tmp, "")
+			for (_i in _tmp) {
+				if (_tmp[_i] == SUBSEP) {
+					continue
 				}
-				if (bail) {
+				books_copy[_tmp[_i]]--
+			}
+			delete all_sets[chosen_set]
+			##############
+			# Next steps #
+			##############
+			skip = 0
+			all_zero = 1
+			for (_i in books_copy) {
+				book_no = books_copy[_i]
+				if (books_copy[_i] < 0) {
+					skip = 1
+					all_zero = 0
 					break
 				}
+				if (books_copy[_i] > 0) {
+					all_zero = 0
+				}
 			}
-			delete complete_choices[compounded]
-			if (bail) {
-				# print "skipping"
+			if (skip) {
 				continue
 			}
-			###########################################
-			# if there are no books left, we are done #
-			###########################################
-			# print compounded
-			for (book_no in books_copy) {
-				# print "book_copy:", book_no, books_copy[book_no]
-			}
-			if (length(books_copy) == 0) {
-				break
-			}
-			##################
-			# build up array #
-			##################
-			# print "Adding new keys"
-			split("", color_bag, FS)
-			for (book_col in books_copy) {
-				color_bag[book_col] = books_copy[book_col]
-			}
-			for (l = 1; l <= length(books_copy); l++) {
-				split("", choices, FS)
-				make_choices_array(l)
-				for (choice in choices) {
-					complete_choices[compounded FS choice]++
+			if (all_zero) {
+				normalized = normalize_choice_set(chosen_set)
+				results[normalized]++
+			} else {
+				recurse = 1
+				split("", add_results, FS)
+				make_all_choices(add_results, books_copy)
+				for (_i in add_results) {
+					all_sets[chosen_set SUBSEP _i]++
 				}
 			}
 		}
 	}
-	for (k in complete_choices) {
-		printf "choice: %s, array value: %s\n", k, complete_choices[k]
+	for (choice_set in results) {
+		print "Here:", choice_set, results[choice_set]
 	}
+	print "Number of results", length(results)
+	print "calls:", calls
+	exit 0
 }
 
+
+function copy_array(source, result, _i)
+{
+	for (_i in source) {
+		result[_i] = source[_i]
+	}
+}
 
 function deduplicate_sort_str(input_str, _i, _c)
 {
@@ -162,4 +147,14 @@ function make_choices_array(result, color_bag, r, _color, _choice, _recurse)
 			result[_color] = _value
 		}
 	}
+}
+
+function normalize_choice_set(choice_set, _normalized_choice_set, _i)
+{
+	split(choice_set, _tmp, SUBSEP)
+	asort(_tmp, _tmp2)
+	for (_i = 1; _i <= length(_tmp2); _i++) {
+		_normalized_choice_set = (_i == 1) ? _tmp2[_i] : _normalized_choice_set SUBSEP _tmp2[_i]
+	}
+	return _normalized_choice_set
 }
