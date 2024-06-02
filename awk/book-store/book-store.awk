@@ -8,8 +8,6 @@ BEGIN {
 	#############################################
 	# tmp variables/etc - clear after each use  #
 	#############################################
-	split("", _tmp, FS)
-	split("", _tmp2, FS)
 }
 
 {
@@ -17,71 +15,84 @@ BEGIN {
 }
 
 END {
+	split("", book_set_combos, FS)
+	split("", _all_possible_sets, FS)
+	split("", _tmp, FS)
+	split("", _tmp2, FS)
+	split("", _basket_copy, FS)
+	split("", _add_set, FS)
+	analyse_book_basket(book_set_combos, books, _all_possible_sets, _tmp, _tmp2, _basket_copy, _add_set)
+	for (book_combo in book_set_combos) {
+		print "Here:", book_combo, book_set_combos[book_combo]
+	}
+	print "Number of results", length(book_set_combos)
+	exit 0
+}
+
+
+function analyse_book_basket(results, book_basket, _all_possible_sets, _tmp, _tmp2, _basket_copy, _add_set, _recurse, _book_set, _i, _skip, _all_zero, _normalized)
+{
 	split("", results, FS)
-	split("", all_sets, FS)
-	make_all_choices(all_sets, books)
-	calls = 0
-	recurse = 1
-	while (recurse) {
-		calls++
-		recurse = 0
-		for (chosen_set in all_sets) {
+	split("", _all_possible_sets, FS)
+	split("", _tmp, FS)
+	split("", _tmp2, FS)
+	split("", _basket_copy, FS)
+	split("", _add_set, FS)
+	make_all_choices(_all_possible_sets, book_basket, _tmp, _tmp2)
+	_recurse = 1
+	while (_recurse) {
+		_recurse = 0
+		for (_book_set in _all_possible_sets) {
 			######################
 			# Make copy of books #
 			######################
-			split("", books_copy, FS)
-			copy_array(books, books_copy)
+			split("", _basket_copy, FS)
+			copy_array(book_basket, _basket_copy)
 			#################################
 			# Clear out chosen set of books #
 			#################################
-			split(chosen_set, _tmp, "")
+			split(_book_set, _tmp, "")
 			for (_i in _tmp) {
 				if (_tmp[_i] == SUBSEP) {
 					continue
 				}
-				books_copy[_tmp[_i]]--
+				_basket_copy[_tmp[_i]]--
 			}
-			delete all_sets[chosen_set]
+			delete _all_possible_sets[_book_set]
 			##############
 			# Next steps #
 			##############
-			skip = 0
-			all_zero = 1
-			for (_i in books_copy) {
-				book_no = books_copy[_i]
-				if (books_copy[_i] < 0) {
-					skip = 1
-					all_zero = 0
+			_skip = 0
+			_all_zero = 1
+			for (_i in _basket_copy) {
+				if (_basket_copy[_i] < 0) {
+					_skip = 1
 					break
 				}
-				if (books_copy[_i] > 0) {
-					all_zero = 0
+				if (_basket_copy[_i] > 0) {
+					_all_zero = 0
 				}
 			}
-			if (skip) {
+			if (_skip) {
 				continue
 			}
-			if (all_zero) {
-				normalized = normalize_choice_set(chosen_set)
-				results[normalized]++
+			if (_all_zero) {
+				split("", _tmp, FS)
+				_normalized = normalize_choice_set(_book_set, _tmp)
+				results[_normalized]++
 			} else {
-				recurse = 1
-				split("", add_results, FS)
-				make_all_choices(add_results, books_copy)
-				for (_i in add_results) {
-					all_sets[chosen_set SUBSEP _i]++
+				_recurse = 1
+				split("", _add_set, FS)
+				split("", _tmp, FS)
+				split("", _tmp2, FS)
+				make_all_choices(_add_set, _basket_copy, _tmp, _tmp2)
+				for (_i in _add_set) {
+					_all_possible_sets[_book_set SUBSEP _i]++
 				}
 			}
 		}
 	}
-	for (choice_set in results) {
-		print "Here:", choice_set, results[choice_set]
-	}
-	print "Number of results", length(results)
-	print "calls:", calls
-	exit 0
 }
-
 
 function copy_array(source, result, _i)
 {
@@ -90,31 +101,31 @@ function copy_array(source, result, _i)
 	}
 }
 
-function deduplicate_sort_str(input_str, _i, _c)
+function deduplicate_sort_str(input_str, tmp, _i, _c)
 {
-	split(input_str, _tmp, "")
-	asort(_tmp)
+	split(input_str, tmp, "")
+	asort(tmp)
 	_c = ""
-	for (_i = 1; _i <= length(_tmp); _i++) {
-		_c = (_tmp[_i] == substr(_c, length(_c), 1)) ? _c : _c _tmp[_i]
+	for (_i = 1; _i <= length(tmp); _i++) {
+		_c = (tmp[_i] == substr(_c, length(_c), 1)) ? _c : _c tmp[_i]
 	}
-	split("", _tmp, FS)
+	split("", tmp, FS)
 	return _c
 }
 
-function make_all_choices(result, color_bag, _i, _j)
+function make_all_choices(result, color_bag, tmp, tmp2, _i, _j)
 {
 	for (_i = 1; _i <= length(color_bag); _i++) {
-		split("", _tmp2, FS)
-		make_choices_array(_tmp2, color_bag, _i)
-		for (_j in _tmp2) {
+		split("", tmp, FS)
+		make_choices_array(tmp, color_bag, _i, tmp2)
+		for (_j in tmp) {
 			result[_j]++
 		}
 	}
-	split("", _tmp2, FS)
+	split("", tmp, FS)
 }
 
-function make_choices_array(result, color_bag, r, _color, _choice, _recurse)
+function make_choices_array(result, color_bag, r, tmp, _color, _choice, _recurse)
 {
 	if (length(result) == 0) {
 		for (_color in color_bag) {
@@ -134,7 +145,7 @@ function make_choices_array(result, color_bag, r, _color, _choice, _recurse)
 		}
 	}
 	if (_recurse == 1) {
-		return make_choices_array(result, color_bag, r)
+		return make_choices_array(result, color_bag, r, tmp)
 	}
 	#########################
 	# DO DEDUPLICATION HERE #
@@ -142,19 +153,19 @@ function make_choices_array(result, color_bag, r, _color, _choice, _recurse)
 	for (_choice in result) {
 		_value = result[_choice]
 		delete result[_choice]
-		_color = deduplicate_sort_str(_choice, _recurse)
+		_color = deduplicate_sort_str(_choice, tmp)
 		if (length(_color) == r) {
 			result[_color] = _value
 		}
 	}
 }
 
-function normalize_choice_set(choice_set, _normalized_choice_set, _i)
+function normalize_choice_set(choice_set, tmp, _normalized_choice_set, _i)
 {
-	split(choice_set, _tmp, SUBSEP)
-	asort(_tmp, _tmp2)
-	for (_i = 1; _i <= length(_tmp2); _i++) {
-		_normalized_choice_set = (_i == 1) ? _tmp2[_i] : _normalized_choice_set SUBSEP _tmp2[_i]
+	split(choice_set, tmp, SUBSEP)
+	asort(tmp)
+	for (_i = 1; _i <= length(tmp); _i++) {
+		_normalized_choice_set = (_i == 1) ? tmp[_i] : _normalized_choice_set SUBSEP tmp[_i]
 	}
 	return _normalized_choice_set
 }
