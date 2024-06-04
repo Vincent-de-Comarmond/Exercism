@@ -15,7 +15,7 @@
 		base10_rep += $i * power
 	}
 	# I disagree with 0 being translated to "" ... but we keep this for now to pass the tests
-	if (base10_rep == 0) {
+	if (base10_rep == 0 && NF > 0) {
 		print "0"
 	}
 	while (base10_rep > 0) {
