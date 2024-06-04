@@ -2,7 +2,7 @@
 load bats-extra
 
 # local version: 2.3.0.1
-
+BATS_RUN_SKIPPED="true"
 @test 'single bit to one decimal' {
     #[[ $BATS_RUN_SKIPPED == "true" ]] || skip
     run gawk -f all-your-base.awk -v ibase=2 -v obase=10 <<< "1"
