@@ -1,3 +1,7 @@
+###############################################################################
+# Note terrible optimization had to be used to get this past the speed limit. #
+# The problem can be seen in the specify_combos function		      #
+###############################################################################
 BEGIN {
 	price[1] = 800
 	for (i = 2; i <= 5; i++) {
@@ -40,7 +44,7 @@ BEGIN {
 	_naive_combos["d"] = price[1]
 	_naive_combos["e"] = price[1]
 	split("", combos, FS)
-	specify_results(combos, _naive_combos)
+	specify_combos(combos, _naive_combos)
 	###
 	for (idx in colors) {
 		books[colors[idx]] = 0
@@ -71,7 +75,7 @@ END {
 
 function generate_results(results, key, a, b, c, d, e, _combo, _key)
 {
-	for (_combo in combos[a > 0, b > 0, c > 0, d > 0, e > 0]) {
+	for (_combo in combos[(a > 0) + (b > 0) + (c > 0) + (d > 0) + (e > 0) > 2][a > 0, b > 0, c > 0, d > 0, e > 0]) {
 		_key = normalize_key((key) ? key SUBSEP _combo : _combo)
 		delete results[key]
 		results[_key]++
@@ -135,16 +139,31 @@ function normalize_key(inputstr, _i, _result)
 	return _result
 }
 
-function specify_results(results, naive_input, _a, _b, _c, _d, _e, _key)
+#########################################################################################
+# Largely good optimization. But problem is partitioning the data between book groups   #
+# greater than 2 and those less than 2 the "_meta_partition".			        #
+# This is quite bad because it breaks the generalizability of the solution, which would #
+# otherwise work for any combinations of discounts.				        #
+# The partitioning means that any potential solutions which would prefer choosing a     #
+# book group of 2 over a book group of 3 are invalidated.			        #
+# The solution is thus no longer general					        #
+#########################################################################################
+function specify_combos(results, naive_input, _a, _b, _c, _d, _e, _meta_partition, _key)
 {
-	for (_key in naive_input) {
-		for (_a = 0; _a <= 1; _a++) {
-			for (_b = 0; _b <= 1; _b++) {
-				for (_c = 0; _c <= 1; _c++) {
-					for (_d = 0; _d <= 1; _d++) {
-						for (_e = 0; _e <= 1; _e++) {
+	for (_a = 0; _a <= 1; _a++) {
+		for (_b = 0; _b <= 1; _b++) {
+			for (_c = 0; _c <= 1; _c++) {
+				for (_d = 0; _d <= 1; _d++) {
+					for (_e = 0; _e <= 1; _e++) {
+						for (_key in naive_input) {
 							if (is_valid(_key, _a, _b, _c, _d, _e)) {
-								results[_a, _b, _c, _d, _e][_key] = naive_input[_key]
+								# Hack ... add addional layer of partitioning
+								_meta_partition = _a + _b + _c + _d + _e
+								if (_meta_partition > 2 && length(_key) > 2) {
+									results[1][_a, _b, _c, _d, _e][_key] = naive_input[_key]
+								} else if (_meta_partition <= 2 && length(_key) <= 2) {
+									results[0][_a, _b, _c, _d, _e][_key] = naive_input[_key]
+								}
 							}
 						}
 					}
