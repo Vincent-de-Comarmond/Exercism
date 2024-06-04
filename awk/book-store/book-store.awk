@@ -73,9 +73,20 @@ END {
 }
 
 
-function generate_results(results, key, a, b, c, d, e, _combo, _key)
+function generate_results(results, key, a, b, c, d, e, _combo, _key, _v, _w, _x, _y, _z)
 {
-	for (_combo in combos[(a > 0) + (b > 0) + (c > 0) + (d > 0) + (e > 0) > 2][a > 0, b > 0, c > 0, d > 0, e > 0]) {
+	#############################################################################
+	# Strange edge case which didn't affect me locall only on Exercism platform #
+	#############################################################################
+	if (a + b + c + d + e == 0) {
+		return
+	}
+	_v = a > 0
+	_w = b > 0
+	_x = c > 0
+	_y = d > 0
+	_z = e > 0
+	for (_combo in combos[_v + _w + _x + _y + _z > 2][_v, _w, _x, _y, _z]) {
 		_key = normalize_key((key) ? key SUBSEP _combo : _combo)
 		delete results[key]
 		results[_key]++
