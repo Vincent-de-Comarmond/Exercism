@@ -8,6 +8,41 @@ BEGIN {
 	#############################################
 	# tmp variables/etc - clear after each use  #
 	#############################################
+	combos["abcde"] = price[5]
+	combos["abcd"] = price[4]
+	combos["abce"] = price[4]
+	combos["abde"] = price[4]
+	combos["acde"] = price[4]
+	combos["bcde"] = price[4]
+	combos["abc"] = price[3]
+	combos["abd"] = price[3]
+	combos["abe"] = price[3]
+	combos["acd"] = price[3]
+	combos["ace"] = price[3]
+	combos["ade"] = price[3]
+	combos["bcd"] = price[3]
+	combos["bce"] = price[3]
+	combos["bde"] = price[3]
+	combos["cde"] = price[3]
+	combos["ab"] = price[2]
+	combos["ac"] = price[2]
+	combos["ad"] = price[2]
+	combos["ae"] = price[2]
+	combos["bc"] = price[2]
+	combos["bd"] = price[2]
+	combos["be"] = price[2]
+	combos["cd"] = price[2]
+	combos["ce"] = price[2]
+	combos["de"] = price[2]
+	combos["a"] = price[1]
+	combos["b"] = price[1]
+	combos["c"] = price[1]
+	combos["d"] = price[1]
+	combos["e"] = price[1]
+	###
+	for (idx in colors) {
+		books[colors[idx]] = 0
+	}
 }
 
 {
@@ -15,176 +50,84 @@ BEGIN {
 }
 
 END {
-	split("", book_set_combos, FS)
-	split("", _all_possible_sets, FS)
-	split("", _tmp, FS)
-	split("", _tmp2, FS)
-	split("", _basket_copy, FS)
-	split("", _add_set, FS)
-	##################
-	# The hard stuff #
-	##################
-	analyse_book_basket(book_set_combos, books, _all_possible_sets, _tmp, _tmp2, _basket_copy, _add_set)
-	##################
-	# The easy stuff #
-	##################
-	# Price the possible set combinations
-	for (book_combo in book_set_combos) {
-		set_price = 0
-		split(book_combo, _tmp, SUBSEP)
-		for (idx in _tmp) {
-			set_price += price[length(_tmp[idx])]
+	split("", results, FS)
+	split("", cached_validity, FS)
+	split("", cached_keys, FS)
+	
+	generate_results(results, "", books["a"], books["b"], books["c"], books["d"], books["e"])
+	cheapest = NR * price[1]
+	for (key in results) {
+		setprice = 0
+		split(key, tmp, SUBSEP)
+		for (idx in tmp) {
+			setprice += combos[tmp[idx]]
 		}
-		combo_prices[book_combo] = set_price
-	}
-	# for (book_combo in combo_prices) {
-	# 	printf "Combo %s; Price: %d\n", book_combo, combo_prices[book_combo]
-	# }
-	cheapest = NR * 800
-	for (combo_price in combo_prices) {
-		cheapest = (combo_prices[combo_price] < cheapest) ? combo_prices[combo_price] : cheapest
+		# printf "Subset: %s, price: %d\n", key, setprice
+		cheapest = (setprice < cheapest) ? setprice : cheapest
 	}
 	print cheapest
-	exit 0
 }
 
 
-function analyse_book_basket(results, book_basket, _all_possible_sets, _tmp, _tmp2, _basket_copy, _add_set, _recurse, _book_set, _i, _skip, _all_zero, _normalized)
+function generate_results(results, key, a, b, c, d, e, _combo, _key)
 {
-	split("", results, FS)
-	split("", _all_possible_sets, FS)
-	split("", _tmp, FS)
-	split("", _tmp2, FS)
-	split("", _basket_copy, FS)
-	split("", _add_set, FS)
-	make_all_choices(_all_possible_sets, book_basket, _tmp, _tmp2)
-	_recurse = 1
-	while (_recurse) {
-		_recurse = 0
-		for (_book_set in _all_possible_sets) {
-			######################
-			# Make copy of books #
-			######################
-			split("", _basket_copy, FS)
-			copy_array(book_basket, _basket_copy)
-			#################################
-			# Clear out chosen set of books #
-			#################################
-			split(_book_set, _tmp, "")
-			for (_i in _tmp) {
-				if (_tmp[_i] == SUBSEP) {
-					continue
-				}
-				_basket_copy[_tmp[_i]]--
-			}
-			delete _all_possible_sets[_book_set]
-			##############
-			# Next steps #
-			##############
-			_skip = 0
-			_all_zero = 1
-			for (_i in _basket_copy) {
-				if (_basket_copy[_i] < 0) {
-					_skip = 1
-					break
-				}
-				if (_basket_copy[_i] > 0) {
-					_all_zero = 0
-				}
-			}
-			if (_skip) {
-				continue
-			}
-			if (_all_zero) {
-				split("", _tmp, FS)
-				_normalized = normalize_choice_set(_book_set, _tmp)
-				results[_normalized]++
-			} else {
-				_recurse = 1
-				split("", _add_set, FS)
-				split("", _tmp, FS)
-				split("", _tmp2, FS)
-				make_all_choices(_add_set, _basket_copy, _tmp, _tmp2)
-				for (_i in _add_set) {
-					_all_possible_sets[_book_set SUBSEP _i]++
-				}
-			}
-		}
+    for (_combo in combos) {
+	if (is_valid(_combo, a > 0 , b > 0, c > 0, d > 0, e > 0)) {
+	    _key = normalize_key((key) ? key SUBSEP _combo : _combo)
+	    delete results[key]
+	    results[_key]++
+	    generate_results(results,
+			     _key,
+			     (index(_combo, "a")) ? a - 1 : a,
+			     (index(_combo, "b")) ? b - 1 : b,
+			     (index(_combo, "c")) ? c - 1 : c,
+			     (index(_combo, "d")) ? d - 1 : d,
+			     (index(_combo, "e")) ? e - 1 : e)
 	}
+    }
 }
 
-function copy_array(source, result, _i)
+function is_valid(test_str, a, b, c, d, e, _i, _val)
 {
-	for (_i in source) {
-		result[_i] = source[_i]
+    if (test_str a b c d e in cached_validity){
+	return cached_validity[test_str a b c d e]
+    }
+    _val = 1
+    
+    for (_i = 1; _i <= length(test_str); _i++) {
+	switch (substr(test_str, _i, 1)) {
+	case "a":
+	    if (a == 0) _val = 0
+	    break
+	case "b":
+	    if (b == 0) _val = 0
+	    break
+	case "c":
+	    if (c == 0) _val = 0
+	    break
+	case "d":
+	    if (d == 0) _val = 0
+	    break
+	case "e":
+	    if (e == 0) _val = 0
+	    break
 	}
+    }
+    return _val
 }
 
-function deduplicate_sort_str(input_str, tmp, _i, _c)
+function normalize_key(inputstr, _i, _result)
 {
-	split(input_str, tmp, "")
-	asort(tmp)
-	_c = ""
-	for (_i = 1; _i <= length(tmp); _i++) {
-		_c = (tmp[_i] == substr(_c, length(_c), 1)) ? _c : _c tmp[_i]
-	}
-	split("", tmp, FS)
-	return _c
-}
-
-function make_all_choices(result, color_bag, tmp, tmp2, _i, _j)
-{
-	for (_i = 1; _i <= length(color_bag); _i++) {
-		split("", tmp, FS)
-		make_choices_array(tmp, color_bag, _i, tmp2)
-		for (_j in tmp) {
-			result[_j]++
-		}
-	}
-	split("", tmp, FS)
-}
-
-function make_choices_array(result, color_bag, r, tmp, _color, _choice, _recurse)
-{
-	if (length(result) == 0) {
-		for (_color in color_bag) {
-			result[_color] = r - 1
-		}
-	}
-	_recurse = 0
-	for (_choice in result) {
-		_value = result[_choice]
-		if (_value == 0) {
-			continue
-		}
-		delete result[_choice]
-		_recurse = 1
-		for (_color in color_bag) {
-			result[_choice _color] = _value - 1
-		}
-	}
-	if (_recurse == 1) {
-		return make_choices_array(result, color_bag, r, tmp)
-	}
-	#########################
-	# DO DEDUPLICATION HERE #
-	#########################
-	for (_choice in result) {
-		_value = result[_choice]
-		delete result[_choice]
-		_color = deduplicate_sort_str(_choice, tmp)
-		if (length(_color) == r) {
-			result[_color] = _value
-		}
-	}
-}
-
-function normalize_choice_set(choice_set, tmp, _normalized_choice_set, _i)
-{
-	split(choice_set, tmp, SUBSEP)
-	asort(tmp)
-	for (_i = 1; _i <= length(tmp); _i++) {
-		_normalized_choice_set = (_i == 1) ? tmp[_i] : _normalized_choice_set SUBSEP tmp[_i]
-	}
-	return _normalized_choice_set
+    if (inputstr in cached_keys){
+	return cached_keys[inputstr]
+    }
+    
+    split(inputstr, _tmp, SUBSEP)
+    asort(_tmp)
+    _result = _tmp[1]
+    for (_i = 2; _i <= length(_tmp); _i++) {
+	_result = _result SUBSEP _tmp[_i]
+    }
+    cached_keys[inputstr]=_result
+    return _result
 }
