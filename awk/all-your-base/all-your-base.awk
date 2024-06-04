@@ -15,9 +15,9 @@
 		base10_rep += $i * power
 	}
 	# I disagree with 0 being translated to "" ... but we keep this for now to pass the tests
-	# if (base10_rep == 0) {
-	# 	print "0"
-	# }
+	if (base10_rep == 0) {
+		print "0"
+	}
 	while (base10_rep > 0) {
 		result = (result == "") ? base10_rep % obase : sprintf("%s %s", base10_rep % obase, result)
 		base10_rep = int(base10_rep / obase)
