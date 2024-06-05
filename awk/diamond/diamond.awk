@@ -1,5 +1,5 @@
 BEGIN {
-	split("ABCDEFGHIJKLMNOPQRSTUVWXYZ", letter_positions, "")
+	alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 }
 
 {
@@ -7,25 +7,16 @@ BEGIN {
 }
 
 END {
-	for (idx in letter_positions) {
-		if (letter_positions[idx] == input_letter) {
-			break
-		}
-	}
+	idx = index(alphabet, input_letter)
 	size = 2 * idx - 1	# Must always be odd
-	centre = idx
-	print size
-	print centre
-	for (line = 1; line <= size; line++) {
-		if (line <= centre) {
-			gap = 2 * line - 3
-		} else {
-			gap = size - 2 * line - 3
-		}
-		for (idx = 1; idx <= size; idx++) {
-			char = (line < size / 2) ? letter_positions[line] : letter_positions[size - line]
-			symbol = (idx == size - int(gap / 2) - 1) ? char : (idx == size + int(gap / 2)) ? char : " "
-			printf symbol
+	for (row = 1; row <= size; row++) {
+		for (col = 1; col <= size; col++) {
+			if (row - col == idx - 1 || row - col == -idx + 1 || row + col == idx + 1 || row + col == size + idx) {
+				char = (row <= idx) ? substr(alphabet, row, 1) : substr(alphabet, size - row + 1, 1)
+			} else {
+				char = " "
+			}
+			printf char
 		}
 		print ""
 	}
