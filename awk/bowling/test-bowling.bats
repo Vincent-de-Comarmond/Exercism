@@ -1,6 +1,7 @@
 #!/usr/bin/env bats
 load bats-extra
 
+BATS_RUN_SKIPPED="true"
 @test "should be able to score a game with all zeros" {
     #[[ $BATS_RUN_SKIPPED == "true" ]] || skip
     run gawk -f bowling.awk <<< "0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0"
