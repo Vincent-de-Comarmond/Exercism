@@ -1,16 +1,18 @@
 BEGIN {
-	split("", numbers, FS)
 	numbers[" _ ,| |,|_|,   "] = 0
 	numbers["   ,  |,  |,   "] = 1
 	numbers[" _ , _|,|_ ,   "] = 2
-	# split(" _ ,| |,|_|,   ", numbers[0], ",")
-	# split("   , | , | ,   ", numbers[1], ",")
-	# split(" _ , _|,|_ ,   ", numbers[2], ",")
-	split("", lines, FS)
+	numbers[" _ , _|, _|,   "] = 3
+	numbers["   ,|_|,  |,   "] = 4
+	numbers[" _ ,|_ , _|,   "] = 5
+	numbers[" _ ,|_ ,|_|,   "] = 6
+	numbers[" _ ,  |,  |,   "] = 7
+	numbers[" _ ,|_|,|_|,   "] = 8
+	numbers[" _ ,|_|, _|,   "] = 9
 }
 
 {
-	lines[length(lines) + 1] = $0
+	lines[NR] = $0
 }
 
 END {
@@ -22,10 +24,14 @@ END {
 		print("Number of input columns is not a multiple of three") >> "/dev/stderr"
 		exit 1
 	}
-	make_chunks(chunks, lines[1], lines[2], lines[3], lines[4])
-	for (idx = 1; idx <= length(chunks); idx++) {
-		printf (chunks[idx] in numbers) ? numbers[chunks[idx]] : "?"
-		# printf "%s: %s\n", chunks[idx], (chunks[idx] in numbers) ? numbers[chunks[idx]] : "?"
+	for (m_row = 1; m_row <= NR; m_row += 4) {
+		if (m_row > 1) {
+			printf ","
+		}
+		make_chunks(chunks, lines[m_row], lines[m_row + 1], lines[m_row + 2], lines[m_row + 3])
+		for (idx = 1; idx <= length(chunks); idx++) {
+			printf (chunks[idx] in numbers) ? numbers[chunks[idx]] : "?"
+		}
 	}
 }
 
