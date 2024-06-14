@@ -1,6 +1,6 @@
 #!/usr/bin/env bats
 load bats-extra
-
+BATS_RUN_SKIPPED="true"
 @test "first prime" {
     #[[ $BATS_RUN_SKIPPED == "true" ]] || skip
     run gawk -f nth-prime.awk -v n=1

@@ -3,6 +3,10 @@
 BEGIN {
 	primes[1] = 2
 	primes[2] = 3
+	if (n != int(n) || n < 1) {
+		print("invalid input") >> "/dev/stderr"
+		exit 1
+	}
 	find_primes_to_n(primes, n)
 	print find_primes_to_n(primes, n)
 	exit 0
