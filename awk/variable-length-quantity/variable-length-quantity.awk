@@ -81,3 +81,12 @@ function hex2bin(input, _i, _tmp)
 	}
 	return _tmp
 }
+
+function reverse(input_str, __tmp, __i)
+{
+	__tmp = ""
+	for (__i = 1; __i <= length(input_str); __i++) {
+		__tmp = substr(input_str, __i, 1) __tmp
+	}
+	return __tmp
+}
