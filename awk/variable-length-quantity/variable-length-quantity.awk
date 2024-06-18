@@ -33,12 +33,54 @@ BEGIN {
 			result = (i == 1) ? encode($1) : result " " encode($i)
 		}
 		print result
+	} else {
+		input = ""
+		for (i = 1; i <= NF; i++) {
+			input = input $i
+		}
+		print decode(input)
 	}
 }
 
 
-function decode(input)
+function decode(input, _val, _val2, _val3, _i, _tmp, _tmp2, _result)
 {
+	_val = ""
+	for (_i = 1; _i <= length(input); _i++) {
+		_val = _val map[substr(input, _i, 1)]
+	}
+	# divide into 8 bits
+	split("", _tmp, FS)
+	for (_i = 1; _i <= length(_val); _i += 8) {
+		_tmp[length(_tmp) + 1] = sprintf("%08d", substr(_val, _i, 8))
+	}
+	_val = ""
+	split("", _tmp2, FS)
+	for (_i = 1; _i <= length(_tmp); _i++) {
+		_val = _val substr(_tmp[_i], 2, 7)
+		if (substr(_tmp[_i], 1, 1) == 0) {
+			_tmp2[length(_tmp2) + 1] = _val
+			_val = ""
+		}
+	}
+	if (_val != "") {
+		print("incomplete byte sequence") >> "/dev/stderr"
+		exit 1
+	}
+	_val3 = ""
+	for (_i in _tmp2) {
+		_result = ""
+		_val = reverse(_tmp2[_i])
+		for (_j = 1; _j <= length(_val); _j += 4) {
+			_val2 = sprintf("%04d", reverse(substr(_val, _j, 4)))
+			_result = rev[_val2] _result
+		}
+		sub(/^0+/, "", _result)
+		_result = (_result == "") ? "00" : _result
+		_val3 = _val3 " " _result
+	}
+	sub(/^\s/, "", _val3)
+	return _val3
 }
 
 function encode(input, _tmp, _i, _val, _val2, _min, _max)
