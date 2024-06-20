@@ -37,32 +37,30 @@ END {
 }
 
 
-function gcd(a, b)
+function array_idx_max(input_array, _max, _key)
 {
-	return (b == 0) ? a : gcd(b, a % b)
+	for (_key in input_array) {
+		_max = (length(_max) == 0) ? _key : (_key > _max) ? _key : _max
+	}
+	return _max
 }
 
-function lcm(a, b)
-{
-	return (a * b / gcd())
-}
-
-function reduce_selection(target_amount, denomination_array, result_array, _coin)
+function reduce_selection(target_amount, denomination_array, result_array, _coin, _keep)
 {
 	split("", result_array, FS)
 	for (_coin in denomination_array) {
 		if (_coin > target_amount) {
 			continue
 		}
-		keep = 1
+		_keep = 1
 		# Skip smaller denominations if we can get to the target with bigger ones
 		for (_bigger in result_array) {
-			if (_bigger % _coin == 0) {
-				keep = 0
+			if (target_amount - _bigger > array_idx_max(result_array) && _bigger % _coin == 0) {
+				_keep = 0
 				break
 			}
 		}
-		if (keep) {
+		if (_keep) {
 			result_array[_coin]++
 		}
 	}
@@ -74,13 +72,11 @@ function solve_bfs(change, denominations, solution_array, _recurse, _coins, _coi
 	do {
 		_recurse = 0
 		for (_coins in solution_array) {
-			# print _coins
 			if (solution_array[_coins] <= 0) {
 				continue
 			}
 			reduce_selection(solution_array[_coins], denominations, _reduced)
 			for (_coin in _reduced) {
-				printf "Target: %d, reduced_size: %d\n", solution_array[_coins], length(_reduced)
 				if (_coin < solution_array[_coins]) {
 					_recurse = 1
 					solution_array[(_coins == -1) ? _coin : _coins SUBSEP _coin] = solution_array[_coins] - _coin
