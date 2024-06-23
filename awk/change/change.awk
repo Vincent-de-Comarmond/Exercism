@@ -3,9 +3,8 @@ BEGIN {
 }
 
 NR == 1 {
-	min_coin = 1000000000
 	for (i = 1; i <= NF; i++) {
-		min_coin = ($i < min_coin) ? $i : min_coin
+		min_coin = (min_coin == "") ? $i : ($i < min_coin) ? $i : min_coin
 		denominations[$i]++
 	}
 }
@@ -49,7 +48,9 @@ function reduce_selection(target_amount, denomination_array, result_array, _coin
 {
 	split("", result_array, FS)
 	for (_coin in denomination_array) {
-		if (_coin > target_amount) {
+		# Absolutely wild - Exercisms version of Awk wanted to do string comparrisons here. Hence it failed
+		# @test "another possible change without unit coins available"
+		if (_coin + 0 > target_amount + 0) {
 			continue
 		}
 		_keep = 1
@@ -77,7 +78,9 @@ function solve_bfs(change, denominations, solution_array, _recurse, _coins, _coi
 			}
 			reduce_selection(solution_array[_coins], denominations, _reduced)
 			for (_coin in _reduced) {
-				if (_coin < solution_array[_coins]) {
+				# Absolutely wild - Exercisms version of Awk wanted to do string comparrisons here. Hence it failed
+				# @test "another possible change without unit coins available"
+				if (_coin + 0 < solution_array[_coins] + 0) {
 					_recurse = 1
 					solution_array[(_coins == -1) ? _coin : _coins SUBSEP _coin] = solution_array[_coins] - _coin
 				} else if (_coin == solution_array[_coins]) {
