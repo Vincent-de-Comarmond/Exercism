@@ -7,10 +7,6 @@ BEGIN {
 	rows = 2 * Rows + 1
 	columns = 2 * Cols + 1
 	previous_seed = (Seed != "") ? srand(Seed) : srand()
-	directions[0] = "step_north"
-	directions[1] = "step_east"
-	directions[2] = "step_south"
-	directions[3] = "step_west"
 	# Special
 	characters["right_arrow"] = "\342\207\250"
 	characters["cross"] = "\342\224\274"
