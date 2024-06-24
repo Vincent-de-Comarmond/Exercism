@@ -31,11 +31,7 @@ END {
 				break
 			}
 			song = song sprintf("She swallowed the %s to catch the %s", animals[j], animals[j - 1])
-			if (j == 3) {
-				song = song " that" substr(rhymes[2], 3) "\n"
-			} else {
-				song = song ".\n"
-			}
+			song = (j == 3) ? song " that" substr(rhymes[2], 3) "\n" : song ".\n"
 		}
 		print (i != 1 && i != 8) ? song rhymes[1] "\n" : song
 	}
