@@ -133,7 +133,7 @@ function pprint_maze(maze_grid, _r, _c, _neighbours, _walls)
 function random_choice(choices_aarray, _tmp, _n)
 {
 	_n = asorti(choices_aarray, _tmp)
-	return _tmp[1 + int(rand() * (_n))]
+	return _tmp[1 + int(rand() * _n)]
 }
 
 function remove_wall(maze_grid, node1, node2, _tmp1, _tmp2)
