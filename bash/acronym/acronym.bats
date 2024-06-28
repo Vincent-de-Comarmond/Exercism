@@ -2,7 +2,7 @@
 load bats-extra
 
 # local version: 1.7.0.1
-
+BATS_RUN_SKIPPED=true
 @test 'basic' {
   #[[ $BATS_RUN_SKIPPED == "true" ]] || skip
   run bash acronym.sh 'Portable Network Graphics'
