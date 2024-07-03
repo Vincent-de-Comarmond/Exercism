@@ -2,7 +2,7 @@
 load bats-extra
 
 # local version: 1.5.0.0
-
+BATS_RUN_SKIPPED=true
 @test "no matches" {
   #[[ $BATS_RUN_SKIPPED == "true" ]] || skip
   run bash anagram.sh "diaper" "hello world zombies pants"
