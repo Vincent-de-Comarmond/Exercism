@@ -7,28 +7,24 @@ validate() {
 }
 
 aliquot_sum() {
-	local -i i sum=0 limit=$(bc <<<"sqrt($1)")
-	for ((i = 1; i <= limit; i++)); do
+	local -i i sum=0
+	for ((i = 1; i * i <= $1; i++)); do
 		if (($1 % i == 0)); then
 			((sum += i))
-			((reciprocal = $1 / i))
-			((sum += (reciprocal != i) ? reciprocal : 0))
+			(((i != $1 / i) && (sum += $1 / i)))
 		fi
-
 	done
 	((sum -= $1))
 	echo "$sum"
 }
 
 main() {
-	local -i a_sum diff
+	local a_sum result
 	a_sum=$(aliquot_sum "$1")
-	((diff = $1 - a_sum))
-	case "$diff" in
-	0) echo "perfect" ;;
-	-[0-9]*) echo "abundant" ;;
-	*) echo "deficient" ;;
-	esac
+	[ "$a_sum" -gt "$1" ] && result="abundant"
+	[ "$a_sum" -lt "$1" ] && result="deficient"
+	[ "$a_sum" -eq "$1" ] && result="perfect"
+	echo "$result"
 }
 
 validate "$1"
