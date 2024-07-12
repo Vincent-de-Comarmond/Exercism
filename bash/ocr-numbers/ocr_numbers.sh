@@ -39,7 +39,7 @@ read_next() {
 	" _ |_| _|   ") output=9 ;;
 	*) output="?" ;;
 	esac
-	printf "$output"
+	echo -n "$output"
 }
 
 main() {
@@ -51,7 +51,7 @@ main() {
 	read_input "$*"
 
 	for ((i = 0; i < rows; i += 4)); do
-		if ((i > 0)); then printf ","; fi
+		if ((i > 0)); then echo -n ","; fi
 		for ((j = 0; j < columns; j += 3)); do
 			read_next "$i" "$j"
 		done
