@@ -29,8 +29,20 @@ replace_emphasis() {
 	echo -n "$line"
 }
 
+handle_headers() {
+	local line="$1"
+	if [[ "$line" =~ ^(#*)[[:space:]]+(.*) ]]; then
+		if [ "${#BASH_REMATCH[1]}" -lt 7 ]; then
+			echo -n "<h${#BASH_REMATCH[1]}>${BASH_REMATCH[2]}</h${#BASH_REMATCH[1]}>"
+			return
+		fi
+	fi
+	echo -n "<p>$line</p>"
+
+}
+
 main() {
-	local inside_a_list=""
+	local inside_a_list="" context=""
 	while IFS= read -r line; do
 		line=$(replace_strong "$line")
 		line=$(replace_emphasis "$line")
@@ -40,7 +52,8 @@ main() {
 				h="$h<ul>"
 				inside_a_list=yes
 			fi
-			h="$h<li>${line#??}</li>" # Strips 2 characters following line (why?)
+			# Strips 2 leading characters to undo the markdown * list syntax
+			h="$h<li>${line#??}</li>"
 			continue
 		fi
 
@@ -48,14 +61,8 @@ main() {
 			h="$h</ul>"
 			inside_a_list=no
 		fi
-
-		if [[ "$line" =~ ^(#*)[[:space:]]+(.*) ]]; then
-			if [ "${#BASH_REMATCH[1]}" -lt 7 ]; then
-				h="$h<h${#BASH_REMATCH[1]}>${BASH_REMATCH[2]}</h${#BASH_REMATCH[1]}>"
-				continue
-			fi
-		fi
-		h="$h<p>$line</p>"
+		line=$(handle_headers "$line")
+		h="$h$line"
 
 	done <"$1"
 
