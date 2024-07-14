@@ -8,6 +8,8 @@
 # 3. Made separate function for replacing strongs
 # 4. Removed weird X$var = X tests
 # 5. Made a seperate function for replacing emphasis and replaced usages thereof in main
+# 6. Made separate function for handling header or paragraph
+# 7. Simplified code
 
 replace_strong() {
 	local line="$1"
@@ -29,7 +31,7 @@ replace_emphasis() {
 	echo -n "$line"
 }
 
-handle_headers() {
+add_header_or_para() {
 	local line="$1"
 	if [[ "$line" =~ ^(#*)[[:space:]]+(.*) ]]; then
 		if [ "${#BASH_REMATCH[1]}" -lt 7 ]; then
@@ -42,35 +44,25 @@ handle_headers() {
 }
 
 main() {
-	local inside_a_list="" context=""
+	local inside_a_list="" content=""
 	while IFS= read -r line; do
 		line=$(replace_strong "$line")
 		line=$(replace_emphasis "$line")
 
 		if [[ "$line" =~ ^\* ]]; then
-			if [ "$inside_a_list" != yes ]; then
-				h="$h<ul>"
-				inside_a_list=yes
-			fi
+			[ "$inside_a_list" != yes ] && content="$content<ul>"
+			[ "$inside_a_list" != yes ] && inside_a_list=yes
 			# Strips 2 leading characters to undo the markdown * list syntax
-			h="$h<li>${line#??}</li>"
-			continue
+			content="$content<li>${line#??}</li>"
+		else
+			[ "$inside_a_list" == yes ] && content="$content</ul>"
+			[ "$inside_a_list" == yes ] && inside_a_list=no
+			content="$content$(add_header_or_para "$line")"
 		fi
-
-		if [ "$inside_a_list" == yes ]; then
-			h="$h</ul>"
-			inside_a_list=no
-		fi
-		line=$(handle_headers "$line")
-		h="$h$line"
-
 	done <"$1"
 
-	if [ "$inside_a_list" == yes ]; then
-		h="$h</ul>"
-	fi
-
-	echo "$h"
+	[ "$inside_a_list" == yes ] && content="$content</ul>"
+	echo "$content"
 }
 
 main "$1"
