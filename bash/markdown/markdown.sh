@@ -10,24 +10,17 @@
 
 replace_strong() {
 	local line="$1" pre post
-	if [[ "$line" =~ ^(.+)__(.*) ]]; then
-		pre="${BASH_REMATCH[1]}"
-		post="${BASH_REMATCH[2]}"
-		if [[ "$pre" =~ ^(.*)__(.+) ]]; then
-			printf -v line "%s<strong>%s</strong>%s" "${BASH_REMATCH[1]}" "${BASH_REMATCH[2]}" "$post"
-			replace_strong "$line"
-			return
-		fi
+	if [[ "$line" =~ ^(.*)__(.*)__(.*) ]]; then
+		printf -v line "%s<strong>%s</strong>%s" "${BASH_REMATCH[1]}" "${BASH_REMATCH[2]}" "${BASH_REMATCH[3]}"
+		replace_strong "$line"
+		return
 	fi
 	echo -n "$line"
 }
 
 replace_emphasis() {
-	# echo "$1"
 	local line="$1"
-	if [[ $line =~ ([^_]+)_([^_]+)_(.*) ]]; then
-		pre="${BASH_REMATCH[1]}"
-		post="${BASH_REMATCH[2]}"
+	if [[ $line =~ ^(.*)_(.*)_(.*) ]]; then
 		printf -v line "%s<em>%s</em>%s" "${BASH_REMATCH[1]}" "${BASH_REMATCH[2]}" "${BASH_REMATCH[3]}"
 		replace_emphasis "$line"
 		return
@@ -45,15 +38,6 @@ main() {
 				h="$h<ul>"
 				inside_a_list=yes
 			fi
-			# echo "Hello: $line"
-			# replace_emphasis "$line"
-			# while [[ $line == *_*?_* ]]; do
-			# 	one=${line#*_}
-			# 	two=${one#*_}
-			# 	if [ ${#two} -lt ${#one} -a ${#one} -lt ${#line} ]; then
-			# 		line="${line%%_$one}<em>${one%%_$two}</em>$two"
-			# 	fi
-			# done
 			line=$(replace_emphasis "$line")
 			h="$h<li>${line#??}</li>" # Strips next 2 vcharacters
 
