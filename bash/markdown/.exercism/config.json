@@ -1,0 +1,21 @@
+{
+  "authors": [
+    "glennj"
+  ],
+  "contributors": [
+    "guygastineau",
+    "IsaacG"
+  ],
+  "files": {
+    "solution": [
+      "markdown.sh"
+    ],
+    "test": [
+      "markdown.bats"
+    ],
+    "example": [
+      ".meta/example.sh"
+    ]
+  },
+  "blurb": "Refactor a Markdown parser."
+}

@@ -1,0 +1,96 @@
+#!/usr/bin/env bash
+
+#############
+# Changelog #
+#############
+# 1. autoformatting (shfmt)
+# 2. put in main function
+# 3. Made separate function for replacing strongs
+# 4. Removed weird X$var = X tests
+
+replace_strong() {
+	local line="$1" pre post
+	if [[ "$line" =~ ^(.+)__(.*) ]]; then
+		pre="${BASH_REMATCH[1]}"
+		post="${BASH_REMATCH[2]}"
+		if [[ "$pre" =~ ^(.*)__(.+) ]]; then
+			printf -v line "%s<strong>%s</strong>%s" "${BASH_REMATCH[1]}" "${BASH_REMATCH[2]}" "$post"
+			replace_strong "$line"
+			return
+		fi
+	fi
+	echo -n "$line"
+}
+
+replace_emphasis() {
+	# echo "$1"
+	local line="$1"
+	if [[ $line =~ ([^_]+)_([^_]+)_(.*) ]]; then
+		pre="${BASH_REMATCH[1]}"
+		post="${BASH_REMATCH[2]}"
+		printf -v line "%s<em>%s</em>%s" "${BASH_REMATCH[1]}" "${BASH_REMATCH[2]}" "${BASH_REMATCH[3]}"
+		replace_emphasis "$line"
+		return
+	fi
+	echo -n "$line"
+}
+
+main() {
+	local inside_a_list=""
+	while IFS= read -r line; do
+		line=$(replace_strong "$line")
+
+		if [[ "$line" =~ ^\* ]]; then
+			if [ "$inside_a_list" != yes ]; then
+				h="$h<ul>"
+				inside_a_list=yes
+			fi
+			# echo "Hello: $line"
+			# replace_emphasis "$line"
+			# while [[ $line == *_*?_* ]]; do
+			# 	one=${line#*_}
+			# 	two=${one#*_}
+			# 	if [ ${#two} -lt ${#one} -a ${#one} -lt ${#line} ]; then
+			# 		line="${line%%_$one}<em>${one%%_$two}</em>$two"
+			# 	fi
+			# done
+			line=$(replace_emphasis "$line")
+			h="$h<li>${line#??}</li>" # Strips next 2 vcharacters
+
+		else
+			if [ "$inside_a_list" == yes ]; then
+				h="$h</ul>"
+				inside_a_list=no
+			fi
+
+			n=$(expr "$line" : "#\{1,\}")
+			if [ $n -gt 0 -a 7 -gt $n ]; then
+
+				while [[ $line == *_*?_* ]]; do
+					s=${line#*_}
+					t=${s#*_}
+					if [ ${#t} -lt ${#s} -a ${#s} -lt ${#line} ]; then
+						line="${line%%_$s}<em>${s%%_$t}</em>$t"
+					fi
+				done
+				HEAD=${line:n}
+				while [[ $HEAD == " "* ]]; do HEAD=${HEAD# }; done
+				h="$h<h$n>$HEAD</h$n>"
+
+			else
+
+				grep '_..*_' <<<"$line" >/dev/null &&
+					line=$(echo "$line" | sed -E 's,_([^_]+)_,<em>\1</em>,g')
+				h="$h<p>$line</p>"
+			fi
+		fi
+	done <"$1"
+
+	if [ "$inside_a_list" == yes ]; then
+		h="$h</ul>"
+	fi
+
+	echo "$h"
+}
+
+main "$1"
