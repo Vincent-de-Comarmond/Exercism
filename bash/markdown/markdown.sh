@@ -49,7 +49,7 @@ main() {
 			inside_a_list=no
 		fi
 
-		if [[ "$line" =~ ^(#*)[[:space:]](.*) ]]; then
+		if [[ "$line" =~ ^(#*)[[:space:]]+(.*) ]]; then
 			if [ "${#BASH_REMATCH[1]}" -lt 7 ]; then
 				h="$h<h${#BASH_REMATCH[1]}>${BASH_REMATCH[2]}</h${#BASH_REMATCH[1]}>"
 				continue
