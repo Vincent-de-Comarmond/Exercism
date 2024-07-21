@@ -21,7 +21,7 @@ main() {
 				((nxt = idx + cols))
 				while ((nxt + len < ${#data[@]})); do
 					if [[ "${data[$nxt]}" =~ [^\+\|] || "${data[$nxt + $len]}" =~ [^\+\|] ]]; then break; fi
-					if [[ "${data[@]:$nxt:$len+1}" =~ ^\+\ (\+ |\- )*\+$ ]]; then ((rect_count++)); fi
+					if [[ "${data[*]:$nxt:$len+1}" =~ ^\+\ (\+ |\- )*\+$ ]]; then ((rect_count++)); fi
 					((nxt += cols))
 				done
 			done
