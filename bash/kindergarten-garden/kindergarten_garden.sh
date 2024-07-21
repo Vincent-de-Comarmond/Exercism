@@ -4,8 +4,9 @@ main() {
 	readarray -t -d $'\n' plants <<<"$1"
 	local -A plant_types=([C]=clover [G]=grass [R]=radishes [V]=violets)
 	local -i idx
-	idx=$(expr index ABCDEFGHIJKLMNOPQRSTUVWXYZ "$2:1:1")
-	((idx = 2 * idx - 2))
+
+	idx=$(echo ABCDEFGHIJKLMNOPQRSTUVWXYZ | grep -bo "${2:0:1}" | cut -d: -f1)
+	((idx = 2 * idx))
 
 	for line in "${plants[@]}"; do
 		students_plants+=("${plant_types[${line:$idx:1}]}" "${plant_types[${line:$idx+1:1}]}")
