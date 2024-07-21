@@ -1,0 +1,21 @@
+{
+  "authors": [
+    "glennj"
+  ],
+  "contributors": [
+    "guygastineau",
+    "IsaacG"
+  ],
+  "files": {
+    "solution": [
+      "rectangles.sh"
+    ],
+    "test": [
+      "rectangles.bats"
+    ],
+    "example": [
+      ".meta/example.sh"
+    ]
+  },
+  "blurb": "Count the rectangles in an ASCII diagram."
+}
