@@ -1,24 +1,16 @@
 #!/usr/bin/env bash
+main() {
+	local -a plants students_plants
+	readarray -t -d $'\n' plants <<<"$1"
+	local -A plant_types=([C]=clover [G]=grass [R]=radishes [V]=violets)
+	local -i idx
+	idx=$(expr index ABCDEFGHIJKLMNOPQRSTUVWXYZ "$2:1:1")
+	((idx = 2 * idx - 2))
 
-# The following comments should help you get started:
-# - Bash is flexible. You may use functions or write a "raw" script.
-#
-# - Complex code can be made easier to read by breaking it up
-#   into functions, however this is sometimes overkill in bash.
-#
-# - You can find links about good style and other resources
-#   for Bash in './README.md'. It came with this exercise.
-#
-#   Example:
-#   # other functions here
-#   # ...
-#   # ...
-#
-#   main () {
-#     # your main function code here
-#   }
-#
-#   # call main with all of the positional arguments
-#   main "$@"
-#
-# *** PLEASE REMOVE THESE COMMENTS BEFORE SUBMITTING YOUR SOLUTION ***
+	for line in "${plants[@]}"; do
+		students_plants+=("${plant_types[${line:$idx:1}]}" "${plant_types[${line:$idx+1:1}]}")
+	done
+	echo "${students_plants[@]}"
+}
+
+main "$@"

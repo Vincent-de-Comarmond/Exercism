@@ -7,7 +7,7 @@ load bats-extra
 # see https://www.gnu.org/software/bash/manual/bash.html#ANSI_002dC-Quoting
 
 # partial garden
-
+BATS_RUN_SKIPPED=true
 @test "garden with single student" {
     #[[ $BATS_RUN_SKIPPED == "true" ]] || skip
     run bash kindergarten_garden.sh $'RC\nGG' "Alice"
