@@ -21,7 +21,7 @@ main() {
 			exit 1
 		fi
 		((power = $1 ** (${#conv_arr[@]} - 1 - i)))
-		((base10 += ${conv_arr[i]} * power))
+		((base10 += conv_arr[i] * power))
 	done
 
 	if [ "$base10" -eq 0 ]; then
