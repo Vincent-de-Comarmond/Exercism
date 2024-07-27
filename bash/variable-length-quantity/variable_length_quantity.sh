@@ -55,9 +55,29 @@ encode() {
 }
 
 decode() {
-	:
+	local bits tmp tmp2 in="${*// /}" idx=0
+	local -a bitarray combined outarray=()
+	read -r bits < <(hex2bin "$in")
+	read -r -a bitarray < <(split "$bits" 8)
+
+	for bits in "${bitarray[@]}"; do
+		combined["$idx"]="${combined[$idx]}""${bits:1}"
+		if [ "${bits:0:1}" -eq 0 ]; then ((idx++)); fi
+	done
+
+	idx=0
+	for bits in "${combined[@]}"; do
+		bitarray=()
+		read -r -a bitarray < <(split "$bits" 4)
+		for tmp in "${bitarray[@]}"; do
+			printf -v tmp2 "%04.f" "$tmp" # Headache of convenience
+			outarray["$idx"]="${outarray[$idx]}""${_bin2hex[$tmp2]}"
+		done
+		printf -v outarray["$idx"] "%02x" "0x${outarray[$idx]}" # manage leading 0s
+		outarray["$idx"]="${outarray[$idx]^^}"                  # Upcase
+		((idx++))
+	done
+	echo "${outarray[@]}"
 }
 
-# hex2bin "$1"
-# split "$1" "$2"
 "$1" "${@:2}"
