@@ -8,6 +8,8 @@ declare -A _bin2hex=(
 	[1000]=8 [1001]=9 [1010]=A [1011]=B [1100]=C [1101]=D [1110]=E [1111]=F
 )
 
+die() { echo "$1" >/dev/stderr && exit 1; }
+
 hex2bin() {
 	local i out
 	for ((i = 0; i < ${#1}; i++)); do out="$out${_hex2bin[${1:$i:1}]}"; done
@@ -64,6 +66,7 @@ decode() {
 		combined["$idx"]="${combined[$idx]}""${bits:1}"
 		if [ "${bits:0:1}" -eq 0 ]; then ((idx++)); fi
 	done
+	if [ "${bits:0:1}" -ne 0 ]; then die "incomplete byte sequence"; fi
 
 	idx=0
 	for bits in "${combined[@]}"; do
@@ -80,4 +83,9 @@ decode() {
 	echo "${outarray[@]}"
 }
 
-"$1" "${@:2}"
+main() {
+	if [[ "$1" != "encode" && "$1" != "decode" ]]; then die "unknown subcommand"; fi
+	"$1" "${@:2}"
+}
+
+main "$@"
