@@ -23,14 +23,13 @@ split() {
 	echo "${out# }"
 }
 
-enc() {
+_enc() {
 	local i val
 	local -a bitarray
 	read -r val < <(hex2bin "$1")
 	read -r -a bitarray < <(split "$val" 7) && val=""
 	printf -v bitarray[0] "%07d" "${bitarray[0]}"
 
-	# echo "${bitarray[@]}"
 	for ((i = 0; i < ${#bitarray[@]}; i++)); do
 		if [ "$val" != "" ] || ((bitarray[i] != 0)); then
 			if ((i == ${#bitarray[@]} - 1)); then
@@ -46,17 +45,12 @@ enc() {
 			val="$val${_bin2hex[$i]}"
 		fi
 	done
-
 	echo "${val:-00}"
-	# split "${val:-00}" 2
 }
 
 encode() {
 	local single output
-	for single in "$@"; do
-		output="$output""$(enc "$single")"
-	done
-
+	for single in "$@"; do output="$output""$(_enc "$single")"; done
 	split "$output" 2
 }
 
