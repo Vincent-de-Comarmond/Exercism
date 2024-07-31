@@ -2,7 +2,7 @@
 main() {
 	local normalized coded
 	local -i idx rows=0 cols=0 r=0 c=0
-	read -r normalized < <(echo "$1" | tr '[:upper:]' '[:lower:]' | tr -cd '[[:lower:][0-9]]')
+	read -r normalized < <(echo "$1" | tr '[:upper:]' '[:lower:]' | tr -cd '[:lower:]0-9')
 	while ((rows * cols < ${#normalized})); do
 		((cols++))
 		if ((rows * cols >= ${#normalized})); then break; else ((rows++)); fi
