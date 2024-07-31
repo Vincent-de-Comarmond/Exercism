@@ -8,7 +8,7 @@ handle_word() {
 
 main() {
 	local -a words
-	for word in "$@"; do words+=($(handle_word "$word")); done
+	for word in "$@"; do read -r words["${#words[@]}"] < <(handle_word "$word"); done
 	echo "${words[@]}"
 }
 
