@@ -14,7 +14,7 @@ die() { echo "$1" >/dev/stderr && exit 1; }
 verse() {
 	local j tmp
 	echo -e "I know an old lady who swallowed a ${animals[$1]}.\n${seconds[$1]}"
-	if (($1 == 1 || $i == 8)); then return; fi
+	if (($1 == 1 || $1 == 8)); then return; fi
 	for ((j = $1; j > 1; j--)); do
 		if ((j == 3)); then tmp=" ${seconds[2]/It/that}"; else tmp="."; fi
 		echo "She swallowed the ${animals[$j]} to catch the ${animals[$j - 1]}$tmp"
