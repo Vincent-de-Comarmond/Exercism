@@ -1,17 +1,30 @@
 #!/usr/bin/env bash
 main() {
-	local -A ranges=([Sunday]="1-2" [Monday]="4-5" [Tuesday]="7-8" [Wednesday]="10-11"
-		[Thursday]="13-14" [Friday]="16-17" [Saturday]="19-20")
+	local -i i yeardiff yearstartday monthstartday rootday=6 # For 2000-01-01 a Saturday
+	local -A days=([Sunday]=0 [Monday]=1 [Tuesday]=2 [Wednesday]=3 [Thursday]=4 [Friday]=5 [Saturday]=6)
 	local -A weeks=([first]=0 [second]=1 [third]=2 [fourth]=3 [last]=-1)
-	local days tmp
-	read -r -a days < <(cal "$2" "$1" | tail -n +3 | cut -c "${ranges[$4]}" | paste -s)
-	if [ "$3" == "teenth" ]; then
-		for tmp in "${days[@]}"; do
-			if [[ ! "$tmp" =~ 1[3-9] ]]; then continue; fi
-			printf "%04d-%02d-%02d\n" "$1" "$2" "$tmp"
-		done
+	local -a dates
+	local -i months=(31 28 31 30 31 30 31 31 30 31 30 31)
+	((yeardiff = $1 - 2000))
+	((yearstartday = rootday + yeardiff))
+	((yearstartday += $1 > 2000 ? 1 + (yeardiff - 1) / 4 : yeardiff / 4))
+	((yearstartday = (yearstartday % 7 + 7) % 7))
+
+	monthstartday=yearstartday
+	for ((i = 0; i < $2 - 1; i++)); do
+		((monthstartday = (monthstartday + months[i]) % 7))
+		if ((i == 1 && ($1 % 4 == 0))); then ((monthstartday = (monthstartday + 1) % 7)); fi
+	done
+
+	for ((i = 1; i <= months[$2 - 1]; i++)); do
+		if (((i + monthstartday - 1) % 7 == days[$4])); then dates+=($i); fi
+	done
+	if (($1 % 4 == 0 && $2 == 2 && (28 + monthstartday) % 7 == days[$4])); then dates+=(29); fi
+
+	if test -v weeks["$3"]; then
+		printf "%04d-%02d-%02d\n" "$1" "$2" "${dates[${weeks[$3]}]}"
 	else
-		printf "%04d-%02d-%02d\n" "$1" "$2" "${days[${weeks[$3]}]}"
+		printf "%04d-%02d-%02d\n" "$1" "$2" $(echo "${dates[@]}" | grep -o '1[3-9]')
 	fi
 }
 main "$@"
