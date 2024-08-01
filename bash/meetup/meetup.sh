@@ -17,14 +17,14 @@ main() {
 	done
 
 	for ((i = 1; i <= months[$2 - 1]; i++)); do
-		if (((i + monthstartday - 1) % 7 == days[$4])); then dates+=($i); fi
+		if (((i + monthstartday - 1) % 7 == days[$4])); then dates+=("$i"); fi
 	done
 	if (($1 % 4 == 0 && $2 == 2 && (28 + monthstartday) % 7 == days[$4])); then dates+=(29); fi
 
 	if test -v weeks["$3"]; then
 		printf "%04d-%02d-%02d\n" "$1" "$2" "${dates[${weeks[$3]}]}"
 	else
-		printf "%04d-%02d-%02d\n" "$1" "$2" $(echo "${dates[@]}" | grep -o '1[3-9]')
+		printf "%04d-%02d-%02d\n" "$1" "$2" "$(echo "${dates[@]}" | grep -o '1[3-9]')"
 	fi
 }
 main "$@"
