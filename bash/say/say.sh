@@ -24,7 +24,7 @@ main() {
 	if (($1 == 0)); then echo zero && return; fi
 
 	local -i val input="$1"
-	local level output="" tmp=""
+	local level output=""
 	local -A levels=([billion]=1000000000 [million]=1000000 [thousand]=1000 [" "]=1)
 	for level in billion million thousand " "; do
 		val="${levels[$level]}"
