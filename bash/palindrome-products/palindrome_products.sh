@@ -20,13 +20,34 @@ pallindrome_products() {
 	done
 	echo "${products[@]}"
 }
+
+ordered_products() {
+	local -i i="$2" j="$2"
+
+	while ((i >= $1 && j >= $1)); do
+		echo $((i * j))
+		if ((i > j)); then ((i--)); else ((j--)); fi
+	done
+}
+
 main() {
-	local -i result i j
+	local -i product=1 result i
+	local factor_string=""
 	local -a products factors
+	local -A uniq_factors
 	read -r -a products < <(pallindrome_products "$2" "$3")
 	if [ "$1" == smallest ]; then result="${products[0]}"; else result="${products[-1]}"; fi
 	read -r -a factors < <(factor "$result" | cut -d: -f2-)
-	echo "${factors[@]}"
+	for i in "${factors[@]}"; do
+		((product *= i))
+		uniq_factors["$i"]=1
+	done
+	uniq_factors[1]=1
+	
+	for i in "${!uniq_factors[@]}"; do
+		factor_string="$factor_string [$i, $((product / i))]"
+	done
+	echo "$result:$factor_string"
 }
 
 main "$@"
