@@ -1,65 +1,71 @@
 #!/usr/bin/env bash
-generate_palindromes() {
-	local -i i idx min max digits
-	local alphabet=abcdefghijklmnopqrstuvwxyz start middle="" end tmp tmp2
+gen_fixed_palindromes() {
+	if [ "$1" -eq 1 ]; then echo {1..9} && return; fi
+	local alphabet=abcdefghijklmnopqrstuvwxyz
+	local idx key val
+	local start middle="" end
 	local -a palindromes
-	((min = $1 * $1, max = $2 * $2))
-	((digits = ${#max}))
-	echo "min: $min"
-	echo "max: $max"
-	echo "digits: $digits"
-	start="${alphabet:0:$((digits / 2))}"
+	# Make template
+	start="${alphabet:0:$(($1 / 2))}"
 	read -r end < <(rev <<<"$start")
-	if ((digits % 2 == 1)); then middle="${alphabet:$((digits / 2)):1}"; fi
-
+	if (($1 % 2 == 1)); then middle="${alphabet:$(($1 / 2)):1}"; fi
 	palindromes+=("$start$middle$end")
+
 	while [[ "${palindromes[*]}" =~ [a-z] ]]; do
 		for idx in "${!palindromes[@]}"; do
-			tmp="${palindromes[$idx]}"
-			tmp2="${tmp//[0-9]/}"
-			if [ "${tmp2:0:1}" == "" ]; then break; fi
-			for i in {0..9}; do palindromes+=("${tmp//${tmp2:0:1}/$i}"); done
+			val="${palindromes[$idx]}"
+			key="${val//[0-9]/}"
+			if [ "${key:0:1}" == "" ]; then break; fi
+			for i in {0..9}; do palindromes+=("${val//${key:0:1}/$i}"); done
 			unset "palindromes[$idx]"
 		done
 	done
 
 	# No palindromes that are legitimately bounded by 0s
-	# for idx in "${!palindromes[@]}"; do
-	# 	if [[ "${palindromes[$idx]}" =~ ^0+(.*)0+$ ]]; then
-	# 		unset "palindromes[$idx]"
-	# 		if [ "${BASH_REMATCH[1]}" != "" ]; then palindromes+=("${BASH_REMATCH[1]}"); fi
-	# 	fi
-	# done
+	for idx in "${!palindromes[@]}"; do
+		if [[ "${palindromes[$idx]}" =~ ^0 ]]; then unset "palindromes[$idx]"; fi
+	done
+	echo "${palindromes[@]}"
+}
 
-	for tmp in "${palindromes[@]}"; do ((min <= tmp && tmp <= max)) && echo "$tmp"; done | sort -n
+gen_palindromes() {
+	local -i i j min max
+	local -a tmp palindromes
+	((min = $1 * $1, max = $2 * $2))
+	for ((i = ${#min}; i <= ${#max}; i++)); do
+		read -r -a tmp < <(gen_fixed_palindromes "$i")
+		for j in "${tmp[@]}"; do
+			if ((min <= j && j <= max)); then palindromes+=("$j"); fi
+		done
+	done
+	echo "${palindromes[@]}"
+}
+
+validate() {
+	if [[ "$1" != smallest && "$1" != largest ]]; then echo "first arg should be 'smallest' or 'largest'" >/dev/stderr && exit 1; fi
+	if [[ "$2" > "$3" ]]; then echo "min must be <= max" >/dev/stderr && exit 1; fi
 }
 
 main() {
-	local -i gotcha=0 i j palindrome smaller larger
-	local factor_string
+	local -i gotcha=0 i j small large
+	local palindrome fstring
 	local -a palindromes
-	local -A factors
-	# generate_palindromes "$2" "$3"
-	if [ "$1" == smallest ]; then
-		readarray -t palindromes < <(generate_palindromes "$2" "$3")
-	else
-		readarray -t palindromes < <(generate_palindromes "$2" "$3" | rev)
-	fi
 
+	if [[ "$1" =~ ^s ]]; then read -r -a palindromes < <(gen_palindromes "$2" "$3"); fi
+	if [[ "$1" =~ ^l ]]; then read -r -a palindromes < <(gen_palindromes "$2" "$3" | rev); fi
 	for palindrome in "${palindromes[@]}"; do
-		factors=()
+		fstring=""
 		for ((i = $2; i <= $3; i++)); do
-			((j = palindrome / i))
-			if ((palindrome % i == 0 && $2 <= j && j <= $3)); then
-				((smaller = i <= j ? i : j, larger = i > j ? i : j))
-				gotcha=1
-				if [[ "$factor_string" != *"[$smaller, $larger]"* ]]; then factor_string="$factor_string [$smaller, $larger]"; fi
+			if ((palindrome % i == 0 && $2 <= palindrome / i && palindrome / i <= $3)); then
+				((j = palindrome / i, gotcha = 1))
+				((small = i <= palindrome / i ? i : j, large = i >= palindrome ? i : j))
+				if [[ "$fstring" != *"[$small, $large]"* ]]; then fstring="$fstring [$small, $large]"; fi
 			fi
 		done
 		if ((gotcha == 1)); then break; fi
 	done
-
-	echo "${palindrome# }:$factor_string"
+	if ((gotcha == 1)); then echo "${palindrome}:$fstring"; fi
 }
 
+validate "$@"
 main "$@"

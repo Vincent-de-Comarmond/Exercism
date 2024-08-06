@@ -3,7 +3,7 @@ load bats-extra
 
 # local version: 1.2.0.1
 # bash-specific test: Input validation
-# BATS_RUN_SKIPPED=true
+BATS_RUN_SKIPPED=true
 
 @test "finds the smallest palindrome from single digit factors" {
     #[[ $BATS_RUN_SKIPPED == "true" ]] || skip
