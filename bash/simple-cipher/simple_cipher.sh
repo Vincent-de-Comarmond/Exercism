@@ -12,7 +12,7 @@ init() {
 }
 
 trans() {
-	local key="$2" word="$3" len="${#2}" out=""
+	local xword="$3" len="${#2}" out=""
 	local -i i ii a b p
 	for ((i = 0; i < "${#3}"; i++)); do
 		((ii = i % len))
