@@ -46,9 +46,7 @@ main() {
 		echo 'Incorrect option. legitimate options are "encode", "decode" and "key".' >/dev/stderr
 		exit 1
 	fi
-	# echo "$k"
-	# echo "$2"
-	trans "$1" "$k" "$2"
+	trans "$1" "$k" "${2,,}"
 }
 init
 main "$@"
