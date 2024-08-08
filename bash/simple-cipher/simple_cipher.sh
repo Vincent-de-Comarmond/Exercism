@@ -11,26 +11,17 @@ init() {
 	done
 }
 
-_trans() {
-	local pos
-	# echo "$1"
-	# echo "$2"
-	# echo "$3"
-	# echo "${_tr[$3]} + ${_tr[$2]} % 26"
-	# echo "${_tr[$3]} - ${_tr[$2]} % 26"
-	if [ "$1" == "encode" ]; then ((pos = (_tr[$3] + _tr[$2]) % 26)); else ((pos = (_tr[$3] - _tr[$2]) % 26)); fi
-	((pos = pos < 0 ? pos + 26 : pos))
-	echo "${_tr[$pos]}"
-}
-
 trans() {
-	local i tmp output=""
+	local key="$2" word="$3" len="${#2}" out=""
+	local -i i ii a b p
 	for ((i = 0; i < "${#3}"; i++)); do
-		# echo "$1" "${2:i:1}" "${3:i:1}"
-		read -r tmp < <(_trans "$1" "${2:i:1}" "${3:i:1}")
-		output="$output$tmp"
+		((ii = i % len))
+		a="${_tr[${3:$i:1}]}"
+		b="${_tr[${2:$ii:1}]}"
+		if [[ "$1" =~ ^enc ]]; then ((p = (a + b) % 26)); else ((p = (a + 26 - b) % 26)); fi
+		out="$out${_tr[$p]}"
 	done
-	echo "$output"
+	echo "$out"
 }
 
 key() {
