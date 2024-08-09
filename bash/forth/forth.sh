@@ -55,7 +55,7 @@ forth() {
 			if [ "${tmp1[-1]}" != ";" ]; then die "macro not terminated with semicolon"; fi
 			if [ "${#tmp1[@]}" -le 3 ]; then die "empty macro definition"; fi
 			if [[ "${tmp1[1]}" =~ -?[0-9]+ ]]; then die "illegal operation"; fi
-			tmp2="${tmp1[@]:2:${#tmp1[@]}-3}"
+			tmp2="${tmp1[*]:2:${#tmp1[@]}-3}"
 
 			for key in "${!macros[@]}"; do
 				replacement="${macros[$key]}"
