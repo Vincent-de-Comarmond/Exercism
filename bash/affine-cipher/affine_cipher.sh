@@ -19,8 +19,8 @@ to_ord() {
 
 to_char() {
 	local -i ord="$1"
-	((ord += 97))
-	printf "\\$(printf "%03o" "$ord")"
+	printf -v ord "%03o" "$((ord + 97))"
+	printf "%b" "\0$ord"
 }
 
 main() {
