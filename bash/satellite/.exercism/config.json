@@ -1,0 +1,20 @@
+{
+  "authors": [
+    "glennj"
+  ],
+  "contributors": [
+    "IsaacG"
+  ],
+  "files": {
+    "solution": [
+      "satellite.sh"
+    ],
+    "test": [
+      "satellite.bats"
+    ],
+    "example": [
+      ".meta/example.sh"
+    ]
+  },
+  "blurb": "Rebuild binary trees from pre-order and in-order traversals."
+}
