@@ -42,11 +42,11 @@ main() {
 		node="${preorder[$id]}"
 		read -r idx < <(getkey "$node" inorder)
 		tmp=() && l_subtree=() && r_subtree=()
-		for char in "${preorder[@]}"; do if [[ "${inorder[@]:0:$idx}" == *"$char"* ]]; then tmp+=("$char"); fi; done
-		for char in "${tmp[@]}"; do if [[ "${preorder[@]:0:$id}" != *"$char"* ]]; then l_subtree+=("$char"); fi; done
+		for char in "${preorder[@]}"; do if [[ "${inorder[*]:0:$idx}" == *"$char"* ]]; then tmp+=("$char"); fi; done
+		for char in "${tmp[@]}"; do if [[ "${preorder[*]:0:$id}" != *"$char"* ]]; then l_subtree+=("$char"); fi; done
 		tmp=()
-		for char in "${preorder[@]}"; do if [[ "${inorder[@]:$idx+1}" == *"$char"* ]]; then tmp+=("$char"); fi; done
-		for char in "${tmp[@]}"; do if [[ "${preorder[@]:0:$id}" != *"$char"* ]]; then r_subtree+=("$char"); fi; done
+		for char in "${preorder[@]}"; do if [[ "${inorder[*]:$idx+1}" == *"$char"* ]]; then tmp+=("$char"); fi; done
+		for char in "${tmp[@]}"; do if [[ "${preorder[*]:0:$id}" != *"$char"* ]]; then r_subtree+=("$char"); fi; done
 
 		nodes+=("$node")
 		lefts+=("${l_subtree[0]}")
