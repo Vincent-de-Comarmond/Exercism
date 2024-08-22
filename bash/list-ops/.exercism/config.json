@@ -1,0 +1,20 @@
+{
+  "authors": [
+    "glennj"
+  ],
+  "contributors": [
+    "kotp"
+  ],
+  "files": {
+    "solution": [
+      "list_ops.sh"
+    ],
+    "test": [
+      "list_ops.bats"
+    ],
+    "example": [
+      ".meta/example.sh"
+    ]
+  },
+  "blurb": "Implement basic list operations."
+}
