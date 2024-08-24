@@ -137,12 +137,7 @@ main() {
 	done
 
 	read -r best < <(for arg in "${scored_hands[@]}"; do echo "$arg"; done | sort -r | head -n1)
-
-	for arg in "${!scored_hands[@]}"; do
-		if [ "${scored_hands[$arg]}" == "$best" ]; then
-			echo "$arg"
-		fi
-	done
+	for arg in "${!scored_hands[@]}"; do if [ "${scored_hands[$arg]}" == "$best" ]; then echo "$arg"; fi; done
 }
 
 main "$@"
