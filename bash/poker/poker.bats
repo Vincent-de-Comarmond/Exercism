@@ -2,7 +2,7 @@
 load bats-extra
 
 # local version: 1.1.0.0
-
+BATS_RUN_SKIPPED=true
 
 @test "single hand always wins" {
     #[[ $BATS_RUN_SKIPPED == "true" ]] || skip
