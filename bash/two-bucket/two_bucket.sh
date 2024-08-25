@@ -43,10 +43,34 @@ calc_gcd() {
 	calc_gcd "$2" "$(($1 % $2))"
 }
 
+set_copy() {
+	local -i _idx _idx2 _a _b _incl=1
+	local -n src1="$1" src2="$2" dst1="$3" dst2="$4"
+	dst1=()
+	dst2=()
+
+	for _idx in "${!src1[@]}"; do
+		_incl=1
+		_a="${src1[$_idx]}"
+		_b="${src2[$_idx]}"
+		for _idx2 in "${!dst1[@]}"; do
+			if [ "$_a $_b" == "${dst1[$_idx2]} ${dst2[$_idx2]}" ]; then
+				_incl=0
+				break
+			fi
+		done
+		if [ "$_incl" -eq 0 ]; then continue; fi
+		dst1+=("$_a")
+		dst2+=("$_b")
+	done
+	src1=()
+	src2=()
+}
+
 main() {
 	local key func
-	local -i moves=0 inval gcd idx a b c d
-	local -a s=() o=(0) m=(1) indexes=()
+	local -i moves=1 inval gcd idx a b c d
+	local -a s=() o=(0) ss=() oo=()
 	local -A cap map=(["s"]="$4")
 
 	read -r gcd < <(calc_gcd "$1" "$2")
@@ -55,13 +79,13 @@ main() {
 
 	if [ "$4" == "one" ]; then map["o"]="two"; else map["o"]="one"; fi
 	if [ "$4" == "one" ]; then cap=(["s"]="$1" ["o"]="$2"); else cap=(["s"]="$2" ["o"]="$1"); fi
+
 	s=("${cap[s]}")
+	if [[ "${s[0]}" -eq "$3" ]]; then echo "moves: $moves, goalBucket: $4, otherBucket: 0" && return; fi
 
 	for _ in {1..100}; do
-		for idx in "${!m[@]}"; do if ((m[idx] == moves)); then indexes+=("$idx"); fi; done
 		((moves++))
-
-		for idx in "${indexes[@]}"; do
+		for idx in "${!s[@]}"; do
 			a="${s[$idx]}"
 			b="${o[$idx]}"
 
@@ -71,14 +95,14 @@ main() {
 					read -r inval < <(invalid cap "$c" "$d")
 					if ((inval == 0 && (c == $3 || d == $3))); then break 4; fi
 					if [[ "$c $d" != "-1 -1" && "$inval" -eq 0 ]]; then
-						s+=("$c")
-						o+=("$d")
-						m+=("$moves")
+						ss+=("$c")
+						oo+=("$d")
 					fi
 				done
 			done
 		done
-		indexes=()
+
+		set_copy ss oo s o
 	done
 	if [ "$c" -eq "$3" ]; then key="${map[s]}"; else key="${map[o]}"; fi
 	echo "moves: $moves, goalBucket: $key, otherBucket: $((c == $3 ? d : c))"
