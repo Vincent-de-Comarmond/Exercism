@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 die() { echo "$1" >/dev/stderr && exit 1; }
-
 _gcd2() { if (($1 == 0 || $2 == 0)); then echo $(($1 + $2)); else _gcd2 "$2" $(($1 % $2)); fi; }
 gcd() {
 	local -i seed="$1" num && shift
@@ -9,9 +8,11 @@ gcd() {
 }
 
 trunc_and_sort() {
-	local dims="$1" trunc_len="$2" _str
-	local -n src_target="$3"
+	local trunc_len="$1" _str dims
+	local -n src_target="$2"
 	local -a tmp
+	read -r -a tmp <<<"${src_target[0]}"
+	((dims = ${#tmp[@]}))
 	readarray -t tmp < <(
 		for _str in "${src_target[@]}"; do echo "$_str"; done | sort -n -k "$dims" | head -n "$trunc_len"
 	)
@@ -21,8 +22,7 @@ trunc_and_sort() {
 
 distribute() {
 	local -n coeff="$1" seed="$2"
-	local -i dimensions="${#coeff[@]}"
-	local distr_str targ buffer_size="${3:-1000}"
+	local distr_str targ buffer_size="${3:-20}" # Only consider the 20 (10 50 100 are all big enough) best performing change distributions
 	local -a distri distributions
 
 	for _ in {1..500}; do
@@ -34,14 +34,12 @@ distribute() {
 			for ((i = 0; i < ${#distri[@]}; i++)); do
 				((distri[i]++))
 				if ((targ - coeff[i] == 0)); then echo "${distri[*]}" && return; fi
-				if ((targ - coeff[i] > 0)); then
-					distributions+=("${distri[*]} $((targ - coeff[i]))")
-				fi
+				if ((targ - coeff[i] > 0)); then distributions+=("${distri[*]} $((targ - coeff[i]))"); fi
 				((distri[i]--))
 			done
 
 			seed=()
-			if ((${#distributions[@]} >= buffer_size)); then trunc_and_sort "$dimensions" "$buffer_size" distributions; fi
+			if ((${#distributions[@]} >= buffer_size)); then trunc_and_sort "$buffer_size" distributions; fi
 			for targ in "${distributions[@]}"; do seed+=("$targ"); done
 		done
 	done
