@@ -8,26 +8,43 @@ gcd() {
 	echo "$seed"
 }
 
-gen_distributions() {
-	local -n seed="$1"
-	local distri_str i
-	local -a distri distributions
-	for distri_str in "${seed[@]}"; do
-		read -r -a distri <<<"$distri_str"
-		for ((i = 0; i < ${#distri[@]}; i++)); do
-			((distri[i]++))
-			distributions+=("${distri[*]}")
-			((distri[i]--))
-		done
-	done
-	for distri_str in "${distributions[@]}"; do echo "$distri_str"; done
+trunc_and_sort() {
+	local dims="$1" trunc_len="$2" _str
+	local -n src_target="$3"
+	local -a tmp
+	readarray -t tmp < <(
+		for _str in "${src_target[@]}"; do echo "$_str"; done | sort -n -k "$dims" | head -n "$trunc_len"
+	)
+	src_target=()
+	for _str in "${tmp[@]}"; do src_target+=("$_str"); done
 }
 
-mult() {
-	local -i i _sum=0
-	local -n _numbers="$1" _coins="$2"
-	for i in "${!_numbers[@]}"; do ((_sum += _numbers[i] * _coins[i])); done
-	echo "$_sum"
+distribute() {
+	local -n coeff="$1" seed="$2"
+	local -i dimensions="${#coeff[@]}"
+	local distr_str targ buffer_size="${3:-1000}"
+	local -a distri distributions
+
+	for _ in {1..500}; do
+		distributions=()
+		for distr_str in "${seed[@]}"; do
+			read -r -a distri <<<"$distr_str"
+			targ="${distri[-1]}"
+			distri=("${distri[@]:0:${#distri[@]}-1}")
+			for ((i = 0; i < ${#distri[@]}; i++)); do
+				((distri[i]++))
+				if ((targ - coeff[i] == 0)); then echo "${distri[*]}" && return; fi
+				if ((targ - coeff[i] > 0)); then
+					distributions+=("${distri[*]} $((targ - coeff[i]))")
+				fi
+				((distri[i]--))
+			done
+
+			seed=()
+			if ((${#distributions[@]} >= buffer_size)); then trunc_and_sort "$dimensions" "$buffer_size" distributions; fi
+			for targ in "${distributions[@]}"; do seed+=("$targ"); done
+		done
+	done
 }
 
 main() {
@@ -41,16 +58,9 @@ main() {
 	if ((target % _gcd != 0)); then die "can't make target with given coins"; fi
 
 	for _ in "${coins[@]}"; do root[0]="${root[0]} 0"; done
-	root[0]="${root[0]# }"
+	root[0]="${root[0]# } $target"
 
-	while :; do
-		readarray -t root < <(gen_distributions root)
-		for tmp in "${root[@]}"; do
-			read -r -a vector <<<"$tmp"
-			read -r tmp < <(mult vector coins)
-			if ((tmp == target)); then break 2; fi
-		done
-	done
+	read -r -a vector < <(distribute coins root)
 
 	for tmp in "${!vector[@]}"; do
 		for ((i = 1; i <= vector[tmp]; i++)); do soln="$soln ${coins[$tmp]}"; done
