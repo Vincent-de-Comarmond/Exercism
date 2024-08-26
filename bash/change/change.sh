@@ -34,9 +34,11 @@ main() {
 	local _gcd tmp soln="" target="$1"
 	shift
 	local -a coins=("$@") root vector
+	if ((target == 0)); then echo "" && return; fi
+	if ((target < 0)); then die "target can't be negative"; fi
 
 	read -r _gcd < <(gcd "${coins[@]}")
-	if ((target % _gcd != 0)); then die "No solution"; fi
+	if ((target % _gcd != 0)); then die "can't make target with given coins"; fi
 
 	for _ in "${coins[@]}"; do root[0]="${root[0]} 0"; done
 	root[0]="${root[0]# }"
