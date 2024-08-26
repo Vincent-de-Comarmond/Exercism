@@ -49,7 +49,7 @@ load bats-extra
 }
 
 @test "large target values" {
-    [[ $BATS_RUN_SKIPPED == "true" ]] || skip
+    # [[ $BATS_RUN_SKIPPED == "true" ]] || skip
     expected="2 2 5 20 20 50 100 100 100 100 100 100 100 100 100"
     coins=(1 2 5 10 20 50 100)
     run bash change.sh 999 "${coins[@]}"

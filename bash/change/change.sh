@@ -22,11 +22,11 @@ trunc_and_sort() {
 
 distribute() {
 	local -n coeff="$1" seed="$2"
-	local distr_str targ buffer_size="${3:-20}" # Only consider the 20 (10 50 100 are all big enough) best performing change distributions
+	local -i _c coins_in_register=500 # Consider the (10 20 50 100 2000 all big enough) best change distributions. 500 is more than big enough for the problem space
+	local distr_str targ buffer_size="${3:-500}"
 	local -a distri distributions
 
-	for _ in {1..500}; do
-		distributions=()
+	for ((_c = 0; _c < coins_in_register; _c++)); do
 		for distr_str in "${seed[@]}"; do
 			read -r -a distri <<<"$distr_str"
 			targ="${distri[-1]}"
@@ -38,10 +38,11 @@ distribute() {
 				((distri[i]--))
 			done
 
-			seed=()
-			if ((${#distributions[@]} >= buffer_size)); then trunc_and_sort "$buffer_size" distributions; fi
-			for targ in "${distributions[@]}"; do seed+=("$targ"); done
 		done
+		seed=()
+		if ((${#distributions[@]} >= buffer_size)); then trunc_and_sort "$buffer_size" distributions; fi
+		for targ in "${distributions[@]}"; do seed+=("$targ"); done
+		distributions=()
 	done
 }
 
