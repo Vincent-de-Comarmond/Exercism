@@ -1,54 +1,54 @@
 #!/usr/bin/env bash
-print_arr() {
-	local -n _printme="$1"
-	local _key
-	for _key in "${!_printme[@]}"; do echo "$_key ${_printme[$_key]}"; done
-}
-
-filter_weight() {
-	local _str="" _tmp
-	for _str in "${@:2}"; do
-		_tmp="${_str%:*}"
-		if ((_tmp <= $1)); then echo "$_str"; fi
+choices() {
+	local -i i j tot n_symb="$1" min="$2" max="$3"
+	local -a vec
+	for ((i = 1; i < 2 ** n_symb; i++)); do
+		tot=0
+		vec=()
+		for ((j = 0; j < n_symb; j++)); do ((k = ((2 ** j) & i) > 0, tot += k, vec[${#vec[@]}] = k)); done
+		if ((min <= tot && tot <= max)); then echo "${vec[@]}"; fi
 	done
 }
 
-print_ignore() {
-	local _j=0 _arg
-	for _arg in "${@:2}"; do
-		if ((_j != $1)); then echo "$_arg"; fi
-		((_j++))
+sum_v() {
+	local -i w="$1" v=0 i idx=0
+	for i in "${@:2}"; do
+		if ((i == 1)); then
+			((w -= weights[idx], v += values[idx]))
+			if ((w < 0)); then ((v = -1)) && break; fi
+		fi
+		((idx++))
 	done
-}
-
-solve() {
-	# ((calls++))
-	# if ((calls % 100 == 0)); then echo "calls: $calls" >&2; fi
-	local -i j v w
-	local -a opts tmp
-	readarray -t opts < <(filter_weight "$2" "${@:3}")
-
-	if ((cap < 0 || ${#opts[@]} < 0)); then echo "Bug: negative capacity encountered" &>/dev/stderr && exit 1; fi
-
-	for ((j = 0; j < ${#opts[@]}; j++)); do
-		v="${opts[$j]#*:}"
-		w="${opts[$j]%:*}"
-		((v = $1 + v, w = $2 - w))
-		if ((v > best)); then best="$v"; fi
-		readarray -t tmp < <(print_ignore "$j" "${opts[@]}")
-		solve "$v" "$w" "${tmp[@]}"
-	done
+	echo "$v"
 }
 
 main() {
 	if (($# < 1)); then echo "Incorrent number of arguments" && exit 1; fi
 
-	declare -ig best=0 # calls=0
-	local -i capacity="$1"
-	local -a options=("${@:2}")
+	local cap="$1" tmp1="$1" tmp2="$1"
+	local i _str maxi=0 mini=0
+	local -a w_incr choice_array
+	declare -ag weights values
 
-	solve 0 "$1" "${@:2}"
-	echo "$best"
+	for _str in "${@:2}"; do
+		values+=("${_str#*:}")
+		weights+=("${_str%:*}")
+	done
+
+	readarray -t w_incr < <(for _str in "${weights[@]}"; do echo "$_str"; done | sort -n)
+	for i in "${!weights[@]}"; do
+		((_str = ${#w_incr[@]} - 1 - i))
+		if ((w_incr[i] <= tmp1)); then ((tmp1 -= w_incr[i], maxi++)); fi
+		if ((w_incr[_str] <= tmp2)); then ((tmp2 -= w_incr[_str], mini++)); fi
+	done
+
+	tmp2=0
+	readarray -t choice_array < <(choices "${#weights[@]}" "$mini" "$maxi")
+	for _str in "${choice_array[@]}"; do
+		read -r tmp1 < <(sum_v "$cap" $_str) # intentional string splitting
+		((tmp2 = tmp1 > tmp2 ? tmp1 : tmp2))
+	done
+	echo "$tmp2"
 }
 
 main "$@"
