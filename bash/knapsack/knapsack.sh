@@ -1,54 +1,54 @@
 #!/usr/bin/env bash
-choices() {
-	local -i i j tot n_symb="$1" min="$2" max="$3"
-	local -a vec
-	for ((i = 1; i < 2 ** n_symb; i++)); do
-		tot=0
-		vec=()
-		for ((j = 0; j < n_symb; j++)); do ((k = ((2 ** j) & i) > 0, tot += k, vec[${#vec[@]}] = k)); done
-		if ((min <= tot && tot <= max)); then echo "${vec[@]}"; fi
-	done
-}
+solve() {
+	# Requires globals cap, best_v, weights values
+	local -i i j w=0 v=0 min="$1" max="$2"
+	local _start="" _end=""
 
-sum_v() {
-	local -i w="$1" v=0 i idx=0
-	for i in "${@:2}"; do
-		if ((i == 1)); then
-			((w -= weights[idx], v += values[idx]))
-			if ((w < 0)); then ((v = -1)) && break; fi
-		fi
-		((idx++))
+	for ((i = 0; i < min; i++)); do _start="$_start"'1'; done
+	for ((i = 0; i < max; i++)); do _end="$_end"'1'; done
+	for ((i = 0; i < ${#weights[@]} - max; i++)); do _end="$_end"'0'; done
+
+	((_start = 2#$_start, _end = 2#$_end))
+	for ((i = _start; i < _end; i++)); do
+		((w = 0, v = 0))
+		for ((j = 0; j < ${#weights[@]}; j++)); do
+			if (((2 ** j) & i)); then
+				((w += weights[j], v += values[j]))
+				if ((w > cap)); then break; fi
+			fi
+		done
+		if ((w <= cap && v > best_v)); then ((best_v = v)); fi
 	done
-	echo "$v"
 }
 
 main() {
 	if (($# < 1)); then echo "Incorrent number of arguments" && exit 1; fi
+	if (($# < 2)); then echo "0" && return; fi
 
-	local cap="$1" tmp1="$1" tmp2="$1"
-	local i _str maxi=0 mini=0
-	local -a w_incr choice_array
+	declare -ig cap="$1" best_v=0
 	declare -ag weights values
+	local i tmp max_items=0 min_items=0
+	local -a weights_increasing
 
-	for _str in "${@:2}"; do
-		values+=("${_str#*:}")
-		weights+=("${_str%:*}")
+	for tmp in "${@:2}"; do
+		values+=("${tmp#*:}")
+		weights+=("${tmp%:*}")
 	done
 
-	readarray -t w_incr < <(for _str in "${weights[@]}"; do echo "$_str"; done | sort -n)
-	for i in "${!weights[@]}"; do
-		((_str = ${#w_incr[@]} - 1 - i))
-		if ((w_incr[i] <= tmp1)); then ((tmp1 -= w_incr[i], maxi++)); fi
-		if ((w_incr[_str] <= tmp2)); then ((tmp2 -= w_incr[_str], mini++)); fi
+	readarray -t weights_increasing < <(for tmp in "${weights[@]}"; do echo "$tmp"; done | sort -n)
+	if ((weights_increasing[0] > $1)); then echo "0" && return; fi
+
+	((tmp = $1))
+	for ((i = 0; i < ${#weights_increasing[@]}; i++)); do
+		if ((weights_increasing[i] <= tmp)); then ((tmp -= weights_increasing[i], max_items++)); fi
+	done
+	((tmp = $1))
+	for ((i = ${#weights_increasing[@]} - 1; i >= 0; i--)); do
+		if ((weights_increasing[i] <= tmp)); then ((tmp -= weights_increasing[i], min_items++)); fi
 	done
 
-	tmp2=0
-	readarray -t choice_array < <(choices "${#weights[@]}" "$mini" "$maxi")
-	for _str in "${choice_array[@]}"; do
-		read -r tmp1 < <(sum_v "$cap" $_str) # intentional string splitting
-		((tmp2 = tmp1 > tmp2 ? tmp1 : tmp2))
-	done
-	echo "$tmp2"
+	solve "$min_items" "$max_items"
+	echo "$best_v"
 }
 
 main "$@"
